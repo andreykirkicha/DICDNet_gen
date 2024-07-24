@@ -45,6 +45,14 @@ def clinic_input_data(test_path, res_path, mask_path):
     mat_interp = RegularGridInterpolator((mat[:,0],), mat[:,1])
     mat_grid = np.array([mat_interp([x]) for x in list(spec[:,0])])
 
+    names = ['M', 'SLI', 'Sma', 'Tr', 'XLI', 'Xma']
+
+    for name in names:
+        current_path = os.path.join(res_path, name)
+        files = os.listdir(current_path)
+        for file in files:
+            os.remove(os.path.join(current_path, file))
+
     for file_name in os.listdir(test_path):
         file_path = os.path.join(test_path, file_name)
 
@@ -107,6 +115,7 @@ def clinic_input_data(test_path, res_path, mask_path):
             # visualization
             print("\n======================== ...saving... ========================\n")
             save_as_image(Xma, img_num, mask_num, res_path, 'Xma')
+            save_as_image(Xgt, img_num, mask_num, 'results/', 'Xgt')
             save_as_image(M, img_num, mask_num, res_path, 'M')
             save_as_image(Tr, img_num, mask_num, res_path, 'Tr')
             save_as_image(Sma, img_num, mask_num, res_path, 'Sma')
@@ -161,9 +170,9 @@ def interpolate_projection(proj, metalTrace):
     return Pinterp
 
 if __name__ == '__main__':
-    test_path = 'data/test'
-    res_path  = 'data/generated'
-    mask_path = 'data/mask'
+    test_path = 'data/test/'
+    res_path  = 'data/generated/'
+    mask_path = 'data/mask/'
 
     names = ['M', 'SLI', 'Sma', 'Tr', 'XLI', 'Xma']
 

@@ -40,8 +40,11 @@ def mkdir(path):
     else:
         print("---  There exsits folder " + path + " !  ---")
 
-pred_path = opt.save_path +'/X_mar/'
+pred_path = opt.save_path +'/Xmar/'
 mkdir(pred_path)
+
+gt_path = opt.save_path +'/Xgt/'
+mkdir(gt_path)
 
 def normalized(X):
     maxX = np.max(X)
