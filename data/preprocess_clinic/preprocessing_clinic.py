@@ -16,6 +16,7 @@ param = initialization()
 ray_trafo, FBPOper = imaging_geo(param)         # CT imaging geometry, ray_trafo is fp, FBPoper is fbp
 
 allXma = []
+allXgt = []
 allXLI = []
 allM = []
 allSma = []
@@ -115,7 +116,6 @@ def clinic_input_data(test_path, res_path, mask_path):
             # visualization
             print("\n======================== ...saving... ========================\n")
             save_as_image(Xma, img_num, mask_num, res_path, 'Xma')
-            save_as_image(Xgt, img_num, mask_num, 'results/', 'Xgt')
             save_as_image(M, img_num, mask_num, res_path, 'M')
             save_as_image(Tr, img_num, mask_num, res_path, 'Tr')
             save_as_image(Sma, img_num, mask_num, res_path, 'Sma')
@@ -123,6 +123,7 @@ def clinic_input_data(test_path, res_path, mask_path):
             save_as_image(XLI, img_num, mask_num, res_path, 'XLI')
 
             allXma.append(Xma)
+            allXgt.append(Xgt)
             allXLI.append(XLI)
             allM.append(M)
             allSma.append(Sma)
@@ -134,7 +135,7 @@ def clinic_input_data(test_path, res_path, mask_path):
 
         img_num += 1
 
-    return allXma, allXLI, allM, allSma, allSLI, allTr, allfilename
+    return allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename
 
 def open_image(file_path, d_type='float32'):
     img = np.array(Image.open(file_path), dtype=d_type)      # ndarray
