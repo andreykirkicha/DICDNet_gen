@@ -1,0 +1,1 @@
+python test_DICDNet.py  --gpu_id 0 --data_path "data/generated/Xma/" --model_dir "pretrain_model/DICDNet_latest.pt" --save_path "save_results/"
