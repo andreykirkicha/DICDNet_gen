@@ -99,9 +99,9 @@ def main():
     time_test = 0
     count = 0
 
-    print('\nload data for DICDNet ...')
+    print('load data for DICDNet ...')
     allXma, allXLI, allM, allSma, allSLI, allTr, allfilename = clinic_input_data(opt.data_path, 'data/generated', opt.mask_path)
-    print('testing DICDNet ...')
+    print('\ntesting DICDNet ...')
    
     for vol_idx in range(len(allXma)):
         print("imag_idx:", vol_idx)

@@ -7,7 +7,7 @@ from .build_gemotry import initialization, imaging_geo
 import PIL
 from PIL import Image
 
-config = get_config('CLINIC_metal/preprocess_clinic/dataset_py_640geo.yaml')
+config = get_config('data/preprocess_clinic/dataset_py_640geo.yaml')
 CTpara = config['CTpara']                       # CT imaging parameters
 
 mask_thre = 2500 / 1000 * 0.192 + 0.192         # taking 2500HU as a thresholding to segment the metal region
@@ -30,12 +30,12 @@ def clinic_input_data(test_path, res_path, mask_path):
 
     mat = []
     spec = []
-    with open("CLINIC_metal/mar_bh_gen/material.txt", "r+") as f:
+    with open("data/mar_bh_gen/material.txt", "r+") as f:
         # Reading from a file
         for line in f:
             a, b = [float(x) for x in line[:-1].split(' ')]
             mat.append([a*1000, b])
-    with open("CLINIC_metal/mar_bh_gen/spectra.txt", "r+") as f:
+    with open("data/mar_bh_gen/spectra.txt", "r+") as f:
         # Reading from a file
         for line in f:
             a, b = [float(x) for x in line[:-1].split(' ')]
@@ -161,9 +161,9 @@ def interpolate_projection(proj, metalTrace):
     return Pinterp
 
 if __name__ == '__main__':
-    test_path = 'CLINIC_metal/test'
-    res_path  = 'CLINIC_metal/generated'
-    mask_path = 'CLINIC_metal/mask'
+    test_path = 'data/test'
+    res_path  = 'data/generated'
+    mask_path = 'data/mask'
 
     names = ['M', 'SLI', 'Sma', 'Tr', 'XLI', 'Xma']
 
