@@ -2,15 +2,16 @@ import odl  # https://github.com/odlgroup/odl
 import numpy as np
 ## 640geo
 class initialization:
-    def __init__(self):
+    def __init__(self, config):
         self.param = {}
-        self.reso = 512 / 416 * 0.03
+        # self.reso = 512 / 416 * 0.03
+        self.reso = eval(config['imPixScale'])
 
         # image
-        self.param['nx_h'] = 416
-        self.param['ny_h'] = 416
-        self.param['sx'] = self.param['nx_h']*self.reso
-        self.param['sy'] = self.param['ny_h']*self.reso
+        self.param['nx_h'] = config['imPixNum']
+        self.param['ny_h'] = config['imPixNum']
+        self.param['sx'] = self.param['nx_h'] * self.reso
+        self.param['sy'] = self.param['ny_h'] * self.reso
 
         ## view
         self.param['startangle'] = 0
@@ -19,10 +20,10 @@ class initialization:
         self.param['nProj'] = 640
 
         ## detector
-        self.param['su'] = 2*np.sqrt(self.param['sx']**2+self.param['sy']**2)
-        self.param['nu_h'] = 641
-        self.param['dde'] = 1075*self.reso
-        self.param['dso'] = 1075*self.reso
+        self.param['su'] = 2 * np.sqrt(self.param['sx'] ** 2 + self.param['sy'] ** 2)
+        self.param['nu_h'] = config['sinogram_size_y']
+        self.param['dde'] = config['SOD'] * self.reso
+        self.param['dso'] = config['SOD'] * self.reso
         self.param['u_water'] = 0.192 #0.0205
 
 def imaging_geo(param):

@@ -39,10 +39,6 @@ def mkdir(path):
     folder = os.path.exists(path)
     if not folder:
         os.makedirs(path)
-        print("---  new folder...  ---")
-        print("---  " + path + "  ---")
-    else:
-        print("---  There exsits folder " + path + " !  ---")
 
 pred_path = opt.save_path + '/Xmar/'
 mkdir(pred_path)

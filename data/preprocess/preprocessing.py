@@ -1,22 +1,22 @@
 # Given clinical Xma, generate data, including: XLI, M, Sma, SLI, Tr for infering InDuDoNet
 import numpy as np
 import os
-import yaml
+import shutil
 from scipy.interpolate import interp1d, RegularGridInterpolator
-from .utils import get_config
-from .build_geometry import initialization, imaging_geo
+from utils import get_config
+from build_geometry import initialization, imaging_geo
+from generate_config import mkdir
 import PIL
 from PIL import Image
 
 # process and save all the to-the-tested volumes
-def clinic_input_data(test_path, res_path, mask_path, config_path):
-    # config = get_config('data/preprocess/config.yaml')
-    config = get_config(config_path)
+def clinic_input_data(test_path, res_path, mask_path, config_name):
+    config = get_config(config_name)
     CTpara = config['CTpara']                       # CT imaging parameters
 
     mask_thre = 2500 / 1000 * 0.192 + 0.192         # taking 2500HU as a thresholding to segment the metal region
 
-    param = initialization()
+    param = initialization(CTpara)
     ray_trafo, FBPOper = imaging_geo(param)         # CT imaging geometry, ray_trafo is fp, FBPoper is fbp
 
     allXma = []
@@ -47,14 +47,6 @@ def clinic_input_data(test_path, res_path, mask_path, config_path):
     spec = np.array(spec)
     mat_interp = RegularGridInterpolator((mat[:,0],), mat[:,1])
     mat_grid = np.array([mat_interp([x]) for x in list(spec[:,0])])
-
-    names = ['M', 'SLI', 'Sma', 'Tr', 'XLI', 'Xma']
-
-    for name in names:
-        current_path = os.path.join(res_path, name)
-        files = os.listdir(current_path)
-        for file in files:
-            os.remove(os.path.join(current_path, file))
 
     for file_name in os.listdir(test_path):
         file_path = os.path.join(test_path, file_name)
@@ -105,7 +97,6 @@ def clinic_input_data(test_path, res_path, mask_path, config_path):
                 lin = Tr * mat_grid[i] / rho + Sgt
                 Sma += spec[i, 1] * np.exp(-lin)
             Sma = -np.log(Sma/total_sum)
-            # print(np.max(Sma))
             Xma = np.asarray(FBPOper(Sma))
 
             # to match metal region of gt and ma images
@@ -118,12 +109,12 @@ def clinic_input_data(test_path, res_path, mask_path, config_path):
 
             # visualization
             print("======================== ...saving... ========================\n")
-            save_as_image(Xma, img_num, mask_num, res_path, 'Xma')
-            save_as_image(M, img_num, mask_num, res_path, 'M')
-            save_as_image(Tr, img_num, mask_num, res_path, 'Tr')
-            save_as_image(Sma, img_num, mask_num, res_path, 'Sma')
-            save_as_image(SLI, img_num, mask_num, res_path, 'SLI')
-            save_as_image(XLI, img_num, mask_num, res_path, 'XLI')
+            save_as_image(Xma, img_num, mask_num, res_path, CTpara, 'Xma')
+            save_as_image(M, img_num, mask_num, res_path, CTpara, 'M')
+            save_as_image(Tr, img_num, mask_num, res_path, CTpara, 'Tr')
+            save_as_image(Sma, img_num, mask_num, res_path, CTpara, 'Sma')
+            save_as_image(SLI, img_num, mask_num, res_path, CTpara, 'SLI')
+            save_as_image(XLI, img_num, mask_num, res_path, CTpara, 'XLI')
             print('\n')
 
             allXma.append(Xma)
@@ -145,14 +136,21 @@ def open_image(file_path, d_type, x_size, y_size):
     img = np.array(Image.open(file_path), dtype=d_type)      # ndarray
     return np.array(Image.fromarray(img).resize((x_size, y_size), PIL.Image.Resampling.BILINEAR))     # resize image
 
-def save_as_image(array, img_num, mask_num, res_path, name):
+def save_as_image(array, img_num, mask_num, res_path, conf, name):
     for_image = array.astype(np.float32)
     image = Image.fromarray(for_image)
     
     cur_path = os.path.join(res_path, name)
+    mkdir(cur_path)
+
+    cur_path = os.path.join(cur_path, f"k={conf['k']:.2f}")
+    mkdir(cur_path)
+
+    cur_path = os.path.join(cur_path, f"phi={conf['phi']:.2f}")
+    mkdir(cur_path)
     
-    image.save(os.path.join(cur_path, name + '_img' + str(img_num) + '_mask' + str(mask_num) + '.tif'))
-    print(name + '\t image saved as ' + name + '_img' + str(img_num) + '_mask' + str(mask_num) + '.tif')
+    image.save(os.path.join(cur_path, 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif'))
+    print(name + '\t image saved as ' + 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif')
 
 def interpolate_projection(proj, metalTrace):
     # projection linear interpolation
@@ -178,13 +176,12 @@ if __name__ == '__main__':
     test_path = 'data/test/'
     res_path  = 'data/generated/'
     mask_path = 'data/mask/'
+    config_path = 'data/preprocess/configs/'
 
-    names = ['M', 'SLI', 'Sma', 'Tr', 'XLI', 'Xma']
-
-    for name in names:
-        current_path = os.path.join(res_path, name)
-        files = os.listdir(current_path)
-        for file in files:
-            os.remove(os.path.join(current_path, file))
+    for dir in os.listdir(res_path):
+        shutil.rmtree(os.path.join(res_path, dir))
     
-    clinic_input_data(test_path, res_path, mask_path)
+    for config_dir in os.listdir(config_path):
+        cur_conf = config_path + config_dir
+        for config_name in os.listdir(cur_conf):
+            clinic_input_data(test_path, res_path, mask_path, os.path.join(cur_conf, config_name))
