@@ -1,34 +1,33 @@
 # Given clinical Xma, generate data, including: XLI, M, Sma, SLI, Tr for infering InDuDoNet
 import numpy as np
 import os
+import yaml
 from scipy.interpolate import interp1d, RegularGridInterpolator
 from .utils import get_config
-from .build_gemotry import initialization, imaging_geo
+from .build_geometry import initialization, imaging_geo
 import PIL
 from PIL import Image
 
-config = get_config('data/preprocess_clinic/config.yaml')
-CTpara = config['CTpara']                       # CT imaging parameters
-
-mask_thre = 2500 / 1000 * 0.192 + 0.192         # taking 2500HU as a thresholding to segment the metal region
-
-param = initialization()
-ray_trafo, FBPOper = imaging_geo(param)         # CT imaging geometry, ray_trafo is fp, FBPoper is fbp
-
-allXma = []
-allXgt = []
-allXLI = []
-allM = []
-allSma = []
-allSLI = []
-allTr = []
-allaffine = []
-allfilename = []
-
 # process and save all the to-the-tested volumes
 def clinic_input_data(test_path, res_path, mask_path):
-    img_num = 0 
+    config = get_config('data/preprocess/config.yaml')
+    CTpara = config['CTpara']                       # CT imaging parameters
 
+    mask_thre = 2500 / 1000 * 0.192 + 0.192         # taking 2500HU as a thresholding to segment the metal region
+
+    param = initialization()
+    ray_trafo, FBPOper = imaging_geo(param)         # CT imaging geometry, ray_trafo is fp, FBPoper is fbp
+
+    allXma = []
+    allXgt = []
+    allXLI = []
+    allM = []
+    allSma = []
+    allSLI = []
+    allTr = []
+    allfilename = []
+
+    img_num = 0
     mat = []
     spec = []
     with open("data/mar_bh_gen/material.txt", "r+") as f:
@@ -41,6 +40,7 @@ def clinic_input_data(test_path, res_path, mask_path):
         for line in f:
             a, b = [float(x) for x in line[:-1].split(' ')]
             spec.append([a, b])
+
     mat  = np.array(mat)
     spec = np.array(spec)
     mat_interp = RegularGridInterpolator((mat[:,0],), mat[:,1])
@@ -63,7 +63,7 @@ def clinic_input_data(test_path, res_path, mask_path):
         # image = np.maximum(image, 0)
 
         # for CLINIC-metal
-        image = open_image(file_path, 'float32')
+        image = open_image(file_path, 'float32', CTpara['imPixNum'], CTpara['imPixNum'])
 
         M = np.zeros((CTpara['imPixNum'], CTpara['imPixNum']), dtype='float32')
         Xgt = np.zeros_like(M)
@@ -78,7 +78,7 @@ def clinic_input_data(test_path, res_path, mask_path):
 
         for mask_name in os.listdir(mask_path):
             cur_mask_path = os.path.join(mask_path, mask_name)
-            mask = open_image(cur_mask_path, 'float32')
+            mask = open_image(cur_mask_path, 'float32', CTpara['imPixNum'], CTpara['imPixNum'])
 
             # put metal into slice
             Xgt = np.copy(image)
@@ -139,9 +139,9 @@ def clinic_input_data(test_path, res_path, mask_path):
 
     return allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename
 
-def open_image(file_path, d_type='float32'):
+def open_image(file_path, d_type, x_size, y_size):
     img = np.array(Image.open(file_path), dtype=d_type)      # ndarray
-    return np.array(Image.fromarray(img).resize((CTpara['imPixNum'], CTpara['imPixNum']), PIL.Image.BILINEAR))     # resize image
+    return np.array(Image.fromarray(img).resize((x_size, y_size), PIL.Image.Resampling.BILINEAR))     # resize image
 
 def save_as_image(array, img_num, mask_num, res_path, name):
     for_image = array.astype(np.float32)
@@ -172,6 +172,10 @@ def interpolate_projection(proj, metalTrace):
 
     return Pinterp
 
+def config_gen(name, dict_file):
+    with open(name, 'w') as output:
+        yaml.dump(dict_file, output)
+
 if __name__ == '__main__':
     test_path = 'data/test/'
     res_path  = 'data/generated/'
@@ -184,5 +188,9 @@ if __name__ == '__main__':
         files = os.listdir(current_path)
         for file in files:
             os.remove(os.path.join(current_path, file))
+
+    dict_file = {'CTPara' : {'imPixNum' : 416, 'angSize' : 0.05}}
+
+    config_gen('my_config.yaml', dict_file)
     
     clinic_input_data(test_path, res_path, mask_path)

@@ -7,7 +7,7 @@ import torch
 import time
 import skimage
 from utils import utils_image
-from data.preprocess_clinic.preprocessing_clinic import clinic_input_data
+from data.preprocess.preprocessing import clinic_input_data
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import normalized_root_mse as nrmse
@@ -44,10 +44,10 @@ def mkdir(path):
     else:
         print("---  There exsits folder " + path + " !  ---")
 
-pred_path = opt.save_path +'/Xmar/'
+pred_path = opt.save_path + '/Xmar/'
 mkdir(pred_path)
 
-gt_path = opt.save_path +'/Xgt/'
+gt_path = opt.save_path + '/Xgt/'
 mkdir(gt_path)
 
 mask_thre = 2500 / 1000 * 0.192 + 0.192
