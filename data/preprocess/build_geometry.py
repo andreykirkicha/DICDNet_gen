@@ -22,8 +22,8 @@ class initialization:
         ## detector
         self.param['su'] = 2 * np.sqrt(self.param['sx'] ** 2 + self.param['sy'] ** 2)
         self.param['nu_h'] = config['sinogram_size_y']
-        self.param['dde'] = config['SOD'] * self.reso
-        self.param['dso'] = config['SOD'] * self.reso
+        self.param['dde'] = config['SOD']
+        self.param['dso'] = config['SDD'] - config['SOD']
         self.param['u_water'] = 0.192 #0.0205
 
 def imaging_geo(param):

@@ -3,8 +3,6 @@ import numpy as np
 import os
 import shutil
 
-SDD = 2000
-
 def mkdir(path):
     folder = os.path.exists(path)
     if not folder:
@@ -16,7 +14,11 @@ def config_gen(path, dict_file):
 
 if __name__ == '__main__':
     K   = np.linspace(1.2, 5, 3)
-    PHI = np.linspace(0.1, 15, 3)
+    PHI = np.linspace(10, 30, 3)
+    
+    detPixNum = 512
+    pixSize = 33.3
+    
     configs_path = 'data/preprocess/configs/'
 
     dirs = os.listdir(configs_path)
@@ -25,13 +27,16 @@ if __name__ == '__main__':
 
     for k in K:
         for phi in PHI:
+            SDD = detPixNum * pixSize / phi
             SOD = SDD / k
+
             dict_file = {'CTpara' : {'imPixNum' : 416,
                                      'angSize' : 0.05,
                                      'linSize' : 1.8536,
-                                     'pixSize' : 0.03,
-                                     'detPixNum' : 512,
+                                     'pixSize' : float(pixSize),
+                                     'detPixNum' : float(detPixNum),
                                      'angNum' : 640,
+                                     'SDD' : float(SDD),
                                      'SOD' : float(SOD),
                                      'sinogram_size_x' : 640,
                                      'sinogram_size_y' : 641,

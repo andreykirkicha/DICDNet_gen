@@ -96,7 +96,7 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
                 total_sum += spec[i, 1]
                 lin = Tr * mat_grid[i] / rho + Sgt
                 Sma += spec[i, 1] * np.exp(-lin)
-            Sma = -np.log(Sma/total_sum)
+            Sma = -np.log(Sma / total_sum)
             Xma = np.asarray(FBPOper(Sma))
 
             # to match metal region of gt and ma images
