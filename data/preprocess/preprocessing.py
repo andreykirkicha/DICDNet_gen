@@ -9,8 +9,9 @@ import PIL
 from PIL import Image
 
 # process and save all the to-the-tested volumes
-def clinic_input_data(test_path, res_path, mask_path):
-    config = get_config('data/preprocess/config.yaml')
+def clinic_input_data(test_path, res_path, mask_path, config_path):
+    # config = get_config('data/preprocess/config.yaml')
+    config = get_config(config_path)
     CTpara = config['CTpara']                       # CT imaging parameters
 
     mask_thre = 2500 / 1000 * 0.192 + 0.192         # taking 2500HU as a thresholding to segment the metal region
@@ -30,6 +31,7 @@ def clinic_input_data(test_path, res_path, mask_path):
     img_num = 0
     mat = []
     spec = []
+
     with open("data/mar_bh_gen/material.txt", "r+") as f:
         # Reading from a file
         for line in f:
@@ -172,10 +174,6 @@ def interpolate_projection(proj, metalTrace):
 
     return Pinterp
 
-def config_gen(name, dict_file):
-    with open(name, 'w') as output:
-        yaml.dump(dict_file, output)
-
 if __name__ == '__main__':
     test_path = 'data/test/'
     res_path  = 'data/generated/'
@@ -188,9 +186,5 @@ if __name__ == '__main__':
         files = os.listdir(current_path)
         for file in files:
             os.remove(os.path.join(current_path, file))
-
-    dict_file = {'CTPara' : {'imPixNum' : 416, 'angSize' : 0.05}}
-
-    config_gen('my_config.yaml', dict_file)
     
     clinic_input_data(test_path, res_path, mask_path)
