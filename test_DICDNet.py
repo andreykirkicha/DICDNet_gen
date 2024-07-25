@@ -50,6 +50,8 @@ mkdir(pred_path)
 gt_path = opt.save_path +'/Xgt/'
 mkdir(gt_path)
 
+mask_thre = 2500 / 1000 * 0.192 + 0.192
+
 def normalized(X):
     maxX = np.max(X)
     minX = np.min(X)
@@ -117,10 +119,9 @@ def main():
 
     print('load data for DICDNet ...')
     allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename = clinic_input_data(opt.data_path, 'data/generated', opt.mask_path)
-    print('\ntesting DICDNet ...')
    
     for vol_idx in range(len(allXma)):
-        print("imag_idx:", vol_idx)
+        print('testing ', vol_idx, ' image ...')
       
         Xma, Xgt, XLI, M = test_image(allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, vol_idx)
         
@@ -133,13 +134,16 @@ def main():
             dur_time = end_time - start_time
             time_test += dur_time
 
-        Xoutclip = torch.clamp(ListX[-1] / 255.0, 0, 0.5)
-        Xoutnorm = Xoutclip / 0.5
+        Xoutclip = torch.clip(ListX[-1] / 255.0, 0, 1)
+        # Xoutnorm = Xoutclip / 0.5
         # Xouthu = tohu(Xoutclip)
 
-        Xpred_out = Xoutnorm.data.cpu().numpy().squeeze()
+        Xpred_out = Xoutclip.data.cpu().numpy().squeeze()
         Xgt_out = Xgt.data.cpu().numpy().squeeze()
-        XLI_out = XLI.data.cpu().numpy().squeeze()
+
+        [row, col] = np.where(Xgt_out > mask_thre)
+        Xgt_out[row, col] = 1
+        Xpred_out[row, col] = 1
         
         image = Image.fromarray(Xpred_out)
         image.save(pred_path + 'pred_' + str(vol_idx) + '.tif')
@@ -147,15 +151,14 @@ def main():
         
         image_gt = Image.fromarray(Xgt_out)
         image_gt.save(gt_path + 'gt_' + str(vol_idx) + '.tif')   
-        print('image gt_' + str(vol_idx) + '.tif saved')
+        print('image gt_' + str(vol_idx) + '.tif saved\n')
 
         print('PNSR\t metric: {:.4f}'.format(psnr(Xpred_out, Xgt_out)))
         print('SSIM\t metric: {:.4f}'.format(ssim(Xpred_out, Xgt_out)))
-        # print('L2_diff/L2_gt   : {:.4f}'.format(np.sqrt(np.mean((Xpred_out - Xgt_out) ** 2) / np.mean(Xgt_out ** 2))))
         print('L2_diff/L2_gt  : {:.4f}'.format(nrmse(Xgt_out, Xpred_out, normalization='mean') /  nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean')))
 
-        print('Times: {:.4f}'.format(dur_time))
-        count += 1
+        # print('Times: {:.4f}'.format(dur_time))
+        # count += 1
         print(100*'*')
 
 if __name__ == "__main__":

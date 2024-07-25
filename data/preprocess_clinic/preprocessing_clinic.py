@@ -7,7 +7,7 @@ from .build_gemotry import initialization, imaging_geo
 import PIL
 from PIL import Image
 
-config = get_config('data/preprocess_clinic/dataset_py_640geo.yaml')
+config = get_config('data/preprocess_clinic/config.yaml')
 CTpara = config['CTpara']                       # CT imaging parameters
 
 mask_thre = 2500 / 1000 * 0.192 + 0.192         # taking 2500HU as a thresholding to segment the metal region
@@ -88,21 +88,22 @@ def clinic_input_data(test_path, res_path, mask_path):
             # segment metal region
             [rowindex, colindex] = np.where(Xgt > mask_thre)
             M.fill(0.0)
-            M[rowindex, colindex] = 1                 
+            M[rowindex, colindex] = Xgt[rowindex, colindex]              
             
             Pmetal_kev = np.asarray(ray_trafo(M))         
-            Tr = Pmetal_kev > 0      
+            Tr = Pmetal_kev > 0
             
             # polychromatic radiation
             Sgt = np.asarray(ray_trafo(Xgt))
 
-            rho = 0.4505
+            rho = 100        # max sinogram value to be about 3-5
             total_sum = 0
             for i in range(mat_grid.shape[0]):
                 total_sum += spec[i, 1]
                 lin = Tr * mat_grid[i] / rho + Sgt
                 Sma += spec[i, 1] * np.exp(-lin)
             Sma = -np.log(Sma/total_sum)
+            # print(np.max(Sma))
             Xma = np.asarray(FBPOper(Sma))
 
             # to match metal region of gt and ma images
@@ -114,13 +115,14 @@ def clinic_input_data(test_path, res_path, mask_path):
             XLI = np.asarray(FBPOper(SLI))
 
             # visualization
-            print("\n======================== ...saving... ========================\n")
+            print("======================== ...saving... ========================\n")
             save_as_image(Xma, img_num, mask_num, res_path, 'Xma')
             save_as_image(M, img_num, mask_num, res_path, 'M')
             save_as_image(Tr, img_num, mask_num, res_path, 'Tr')
             save_as_image(Sma, img_num, mask_num, res_path, 'Sma')
             save_as_image(SLI, img_num, mask_num, res_path, 'SLI')
             save_as_image(XLI, img_num, mask_num, res_path, 'XLI')
+            print('\n')
 
             allXma.append(Xma)
             allXgt.append(Xgt)
