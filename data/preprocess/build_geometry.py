@@ -5,7 +5,7 @@ class initialization:
     def __init__(self, config):
         self.param = {}
         # self.reso = 512 / 416 * 0.03
-        self.reso = eval(config['imPixScale'])
+        self.reso = config['detPixNum'] / config['imPixNum'] * config['pixSize']
 
         # image
         self.param['nx_h'] = config['imPixNum']

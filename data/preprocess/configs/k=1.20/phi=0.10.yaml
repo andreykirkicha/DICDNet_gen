@@ -2,11 +2,12 @@ CTpara:
   SOD: 1666.6666666666667
   angNum: 640
   angSize: 0.05
+  detPixNum: 512
   imPixNum: 416
-  imPixScale: 512 / 416 * 0.03
   k: 1.2
   linSize: 1.8536
   phi: 0.1
+  pixSize: 0.03
   sinogram_size_x: 640
   sinogram_size_y: 641
   window: '[-175, 275] / 1000 * 0.192 + 0.192'

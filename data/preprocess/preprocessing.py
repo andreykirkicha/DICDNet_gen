@@ -115,7 +115,6 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
             save_as_image(Sma, img_num, mask_num, res_path, CTpara, 'Sma')
             save_as_image(SLI, img_num, mask_num, res_path, CTpara, 'SLI')
             save_as_image(XLI, img_num, mask_num, res_path, CTpara, 'XLI')
-            print('\n')
 
             allXma.append(Xma)
             allXgt.append(Xgt)
@@ -129,6 +128,8 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
             mask_num += 1
 
         img_num += 1
+
+    print('\n') 
 
     return allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename
 
