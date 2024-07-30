@@ -8,6 +8,7 @@ import skimage
 import shutil
 from utils import utils_image
 from data.preprocess.preprocessing import clinic_input_data, save_as_image
+from data.preprocess.utils import get_config
 from data.preprocess.generate_config import mkdir
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
@@ -112,18 +113,20 @@ def main():
     for dir in os.listdir(opt.save_path):
         shutil.rmtree(os.path.join(opt.save_path, dir))
 
-    pred_path = opt.save_path + '/Xmar/'
-    mkdir(pred_path)
+    # pred_path = opt.save_path + '/Xmar/'
+    # mkdir(pred_path)
 
-    gt_path = opt.save_path + '/Xgt/'
-    mkdir(gt_path)
+    # gt_path = opt.save_path + '/Xgt/'
+    # mkdir(gt_path)
 
     print('load data for DICDNet ...')
     for config_dir in os.listdir(opt.config_path):
         cur_conf = opt.config_path + config_dir
         for config_name in os.listdir(cur_conf):
-            allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename, allConfigs = clinic_input_data(opt.data_path, 'data/generated', 
-                                                                                                             opt.mask_path, os.path.join(cur_conf, config_name))
+            allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename = clinic_input_data(opt.data_path, 'data/generated', 
+                                                                                                 opt.mask_path, os.path.join(cur_conf, config_name))
+            config = get_config(os.path.join(cur_conf, config_name))
+            CTpara = config['CTpara']
             # allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename = clinic_input_data(opt.data_path, 'data/generated', opt.mask_path)
             print('==== NEW CONFIG ====\n')
    
@@ -159,9 +162,9 @@ def main():
                 # image_gt = Image.fromarray(Xgt_out)
                 # image_gt.save(gt_path + 'gt_' + str(vol_idx) + '.tif')   
                 # print('image gt_' + str(vol_idx) + '.tif saved\n')
-                print(os.path.join(cur_conf, config_name))
-                save_as_image(Xpred_out, vol_idx, vol_idx, pred_path, allConfigs, 'pred')
-                save_as_image(Xgt_out, vol_idx, vol_idx, pred_path, allConfigs, 'gt')
+                
+                save_as_image(Xpred_out, vol_idx, vol_idx, opt.save_path, CTpara, 'Xpred')
+                save_as_image(Xgt_out, vol_idx, vol_idx, opt.save_path, CTpara, 'Xgt')
 
                 print('PNSR\t metric: {:.4f}'.format(psnr(Xpred_out, Xgt_out)))
                 print('SSIM\t metric: {:.4f}'.format(ssim(Xpred_out, Xgt_out)))
@@ -171,7 +174,7 @@ def main():
                 # count += 1
                 print(100*'*')
 
-                print('==== END OF CONFIG ====\n')
+            print('==== END OF CONFIG ====\n')
 
 if __name__ == "__main__":
     main()

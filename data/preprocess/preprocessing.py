@@ -108,13 +108,13 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
             XLI = np.asarray(FBPOper(SLI))
 
             # visualization
-            print("======================== ...saving... ========================\n")
-            save_as_image(Xma, img_num, mask_num, res_path, CTpara, 'Xma')
-            save_as_image(M, img_num, mask_num, res_path, CTpara, 'M')
-            save_as_image(Tr, img_num, mask_num, res_path, CTpara, 'Tr')
-            save_as_image(Sma, img_num, mask_num, res_path, CTpara, 'Sma')
-            save_as_image(SLI, img_num, mask_num, res_path, CTpara, 'SLI')
-            save_as_image(XLI, img_num, mask_num, res_path, CTpara, 'XLI')
+            # print("======================== ...saving... ========================\n")
+            # save_as_image(Xma, img_num, mask_num, res_path, CTpara, 'Xma')
+            # save_as_image(M, img_num, mask_num, res_path, CTpara, 'M')
+            # save_as_image(Tr, img_num, mask_num, res_path, CTpara, 'Tr')
+            # save_as_image(Sma, img_num, mask_num, res_path, CTpara, 'Sma')
+            # save_as_image(SLI, img_num, mask_num, res_path, CTpara, 'SLI')
+            # save_as_image(XLI, img_num, mask_num, res_path, CTpara, 'XLI')
 
             allXma.append(Xma)
             allXgt.append(Xgt)
