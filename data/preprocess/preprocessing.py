@@ -9,8 +9,7 @@ from .generate_config import mkdir
 import PIL
 from PIL import Image
 
-# process and save all the to-the-tested volumes
-def clinic_input_data(test_path, res_path, mask_path, config_name):
+def generation(test_path, res_path, mask_path, config_name):
     config = get_config(config_name)
     CTpara = config['CTpara']                       # CT imaging parameters
 
@@ -18,15 +17,6 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
 
     param = initialization(CTpara)
     ray_trafo, FBPOper = imaging_geo(param)         # CT imaging geometry, ray_trafo is fp, FBPoper is fbp
-
-    allXma = []
-    allXgt = []
-    allXLI = []
-    allM = []
-    allSma = []
-    allSLI = []
-    allTr = []
-    allfilename = []
 
     img_num = 0
     mat = []
@@ -70,15 +60,6 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
 
         mask_num = 0
 
-        allXma.append([])
-        allXgt.append([])
-        allXLI.append([])
-        allM.append([])
-        allSma.append([])
-        allSLI.append([])
-        allTr.append([])
-        allfilename.append([])
-
         for mask_name in os.listdir(mask_path):
             print(">>> Generation of img ", img_num, " with mask ", mask_num, " ...")
 
@@ -120,28 +101,54 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
 
             # visualization
             save_as_image(Xma, img_num, mask_num, res_path, CTpara, 'Xma')
+            save_as_image(Xgt, img_num, mask_num, res_path, CTpara, 'Xgt')
             save_as_image(M, img_num, mask_num, res_path, CTpara, 'M')
             save_as_image(Tr, img_num, mask_num, res_path, CTpara, 'Tr')
             save_as_image(Sma, img_num, mask_num, res_path, CTpara, 'Sma')
             save_as_image(SLI, img_num, mask_num, res_path, CTpara, 'SLI')
             save_as_image(XLI, img_num, mask_num, res_path, CTpara, 'XLI')
 
-            allXma[img_num].append(Xma)
-            allXgt[img_num].append(Xgt)
-            allXLI[img_num].append(XLI)
-            allM[img_num].append(M)
-            allSma[img_num].append(Sma)
-            allSLI[img_num].append(SLI)
-            allTr[img_num].append(Tr)
-            allfilename[img_num].append(file_name)
-
             mask_num += 1
-
+        
         img_num += 1
 
-    print('\n')
 
-    return allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename
+# save all the to-the-tested volumes
+def clinic_input_data(test_path, res_path, mask_path, config_name):
+    config = get_config(config_name)
+    CTpara = config['CTpara']
+    gt_path = 'results/'
+
+    allXma = []
+    allXgt = []
+    allXLI = []
+    allM = []
+    allSma = []
+    allSLI = []
+    allTr = []
+
+    all = [allM, allSLI, allSma, allTr, allXgt, allXLI, allXma]
+
+    # generation(test_path, res_path, mask_path, config_name)
+
+    dir_idx = 0
+    for dir in os.listdir(res_path):
+        path = os.path.join(res_path, dir, f"k={CTpara['k']:.2f}", f"phi={CTpara['phi']:.2f}")
+
+        img_idx = 0
+        for img_dir in os.listdir(path):
+            cur_img = os.path.join(path, img_dir)
+            all[dir_idx].append([])
+
+            for mask in os.listdir(cur_img):
+                array = open_image(os.path.join(cur_img, mask), 'float32', CTpara['imPixNum'], CTpara['imPixNum'])
+                (all[dir_idx])[img_idx].append(array)
+
+            img_idx += 1
+
+        dir_idx += 1
+
+    return allM, allSLI, allSma, allTr, allXgt, allXLI, allXma
 
 def open_image(file_path, d_type, x_size, y_size):
     img = np.array(Image.open(file_path), dtype=d_type)      # ndarray

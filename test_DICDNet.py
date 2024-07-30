@@ -93,11 +93,8 @@ def main():
     time_test = 0
     count = 0
 
-    for dir in os.listdir(opt.gen_path):
-        shutil.rmtree(os.path.join(opt.gen_path, dir))
-
-    for dir in os.listdir(opt.save_path):
-        shutil.rmtree(os.path.join(opt.save_path, dir))
+    # for dir in os.listdir(opt.gen_path):
+    #     shutil.rmtree(os.path.join(opt.gen_path, dir))
 
     print('Load data for DICDNet ...\n')
     for config_dir in os.listdir(opt.config_path):
@@ -109,11 +106,11 @@ def main():
 
             print(50*'*', 'PARAMETERS', f"k = {CTpara['k']:.2f}, phi = {CTpara['phi']:.2f}", 50*'*')
 
-            allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename = clinic_input_data(opt.data_path, 'data/generated', 
-                                                                                                 opt.mask_path, os.path.join(cur_conf, config_name))
+            allM, allSLI, allSma, allTr, allXgt, allXLI, allXma = clinic_input_data(opt.data_path, 'data/generated', 
+                                                                                    opt.mask_path, os.path.join(cur_conf, config_name))
             
             print('Testing network ...')
-   
+
             for img_idx in range(len(allXma)):
                 print(10*'=', 'Image ', img_idx,  10*'=')
 
@@ -143,7 +140,6 @@ def main():
                     Xpred_out[row, col] = 1
                     
                     save_as_image(Xpred_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xpred')
-                    save_as_image(Xgt_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xgt')
 
                     print('PNSR   metric: {:.4f}'.format(psnr(Xpred_out, Xgt_out)))
                     print('SSIM   metric: {:.4f}'.format(ssim(Xpred_out, Xgt_out)))

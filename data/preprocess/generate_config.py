@@ -16,8 +16,8 @@ if __name__ == '__main__':
     detPixNum = 512
     pixSize = 33.3
 
-    K   = np.linspace(1.2, 5, 3)
-    PHI = np.linspace(5, 20, 5)
+    K   = np.linspace(1.2, 5, 2)
+    PHI = np.linspace(5, 20, 2)
     
     configs_path = 'data/preprocess/configs/'
 
