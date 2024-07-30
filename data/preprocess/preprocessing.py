@@ -71,6 +71,8 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
         mask_num = 0
 
         for mask_name in os.listdir(mask_path):
+            print(">>> Generation of img ", img_num, " with mask ", mask_num, " ...")
+
             cur_mask_path = os.path.join(mask_path, mask_name)
             mask = open_image(cur_mask_path, 'float32', CTpara['imPixNum'], CTpara['imPixNum'])
 
@@ -108,28 +110,36 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
             XLI = np.asarray(FBPOper(SLI))
 
             # visualization
-            # print("======================== ...saving... ========================\n")
-            # save_as_image(Xma, img_num, mask_num, res_path, CTpara, 'Xma')
-            # save_as_image(M, img_num, mask_num, res_path, CTpara, 'M')
-            # save_as_image(Tr, img_num, mask_num, res_path, CTpara, 'Tr')
-            # save_as_image(Sma, img_num, mask_num, res_path, CTpara, 'Sma')
-            # save_as_image(SLI, img_num, mask_num, res_path, CTpara, 'SLI')
-            # save_as_image(XLI, img_num, mask_num, res_path, CTpara, 'XLI')
+            save_as_image(Xma, img_num, mask_num, res_path, CTpara, 'Xma')
+            save_as_image(M, img_num, mask_num, res_path, CTpara, 'M')
+            save_as_image(Tr, img_num, mask_num, res_path, CTpara, 'Tr')
+            save_as_image(Sma, img_num, mask_num, res_path, CTpara, 'Sma')
+            save_as_image(SLI, img_num, mask_num, res_path, CTpara, 'SLI')
+            save_as_image(XLI, img_num, mask_num, res_path, CTpara, 'XLI')
 
-            allXma.append(Xma)
-            allXgt.append(Xgt)
-            allXLI.append(XLI)
-            allM.append(M)
-            allSma.append(Sma)
-            allSLI.append(SLI)
-            allTr.append(Tr)
-            allfilename.append(file_name)
+            allXma.append([])
+            allXgt.append([])
+            allXLI.append([])
+            allM.append([])
+            allSma.append([])
+            allSLI.append([])
+            allTr.append([])
+            allfilename.append([])
+
+            allXma[img_num].append(Xma)
+            allXgt[img_num].append(Xgt)
+            allXLI[img_num].append(XLI)
+            allM[img_num].append(M)
+            allSma[img_num].append(Sma)
+            allSLI[img_num].append(SLI)
+            allTr[img_num].append(Tr)
+            allfilename[img_num].append(file_name)
 
             mask_num += 1
 
         img_num += 1
 
-    print('\n') 
+    print('\n')
 
     return allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename
 
@@ -151,7 +161,7 @@ def save_as_image(array, img_num, mask_num, res_path, conf, name):
     mkdir(cur_path)
     
     image.save(os.path.join(cur_path, 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif'))
-    print(name + '\t image saved as ' + 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif')
+    # print(name + '\t image saved as ' + 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif')
 
 def interpolate_projection(proj, metalTrace):
     # projection linear interpolation

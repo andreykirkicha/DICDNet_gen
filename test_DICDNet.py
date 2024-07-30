@@ -74,14 +74,14 @@ def tohu(X):           # display window as [-175HU, 275HU]
     CT_winnorm = (CT_win +175) / (275+175)
     return CT_winnorm
 
-def test_image(allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, vol_idx):
-    Xma = allXma[vol_idx]
-    Xgt = allXgt[vol_idx]
-    XLI = allXLI[vol_idx]
-    M = allM[vol_idx]
-    Sma = allSma[vol_idx]
-    SLI = allSLI[vol_idx]
-    Tr = allTr[vol_idx]
+def test_image(allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, mask_idx):
+    Xma = allXma[mask_idx]
+    Xgt = allXgt[mask_idx]
+    XLI = allXLI[mask_idx]
+    M = allM[mask_idx]
+    Sma = allSma[mask_idx]
+    SLI = allSLI[mask_idx]
+    Tr = allTr[mask_idx]
 
     Xma = normalize(Xma, image_get_minmax())
     XLI = normalize(XLI, image_get_minmax())
@@ -94,7 +94,7 @@ def test_image(allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, vol_idx):
 
 def main():
     # Build model
-    print('Loading model ...\n')
+    print('Loading model ...')
     model = DICDNet(opt).cuda()
     model.load_state_dict(torch.load(opt.model_dir))
     model.eval()
@@ -102,79 +102,63 @@ def main():
     time_test = 0
     count = 0
 
-    # names = ['Xgt', 'Xmar']
-
-    # for name in names:
-    #     current_path = os.path.join(opt.save_path, name)
-    #     files = os.listdir(current_path)
-    #     for file in files:
-    #         os.remove(os.path.join(current_path, file))
-
     for dir in os.listdir(opt.save_path):
         shutil.rmtree(os.path.join(opt.save_path, dir))
 
-    # pred_path = opt.save_path + '/Xmar/'
-    # mkdir(pred_path)
-
-    # gt_path = opt.save_path + '/Xgt/'
-    # mkdir(gt_path)
-
-    print('load data for DICDNet ...')
+    print('Load data for DICDNet ...\n')
     for config_dir in os.listdir(opt.config_path):
         cur_conf = opt.config_path + config_dir
+
         for config_name in os.listdir(cur_conf):
-            allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename = clinic_input_data(opt.data_path, 'data/generated', 
-                                                                                                 opt.mask_path, os.path.join(cur_conf, config_name))
             config = get_config(os.path.join(cur_conf, config_name))
             CTpara = config['CTpara']
-            # allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename = clinic_input_data(opt.data_path, 'data/generated', opt.mask_path)
-            print('==== NEW CONFIG ====\n')
-   
-            for vol_idx in range(len(allXma)):
-                print('testing ', vol_idx, ' image ...')
+
+            print(50*'*', 'PARAMETERS ', f"k = {CTpara['k']:.2f}, phi = {CTpara['phi']:.2f}", 50*'*')
+
+            allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename = clinic_input_data(opt.data_path, 'data/generated', 
+                                                                                                 opt.mask_path, os.path.join(cur_conf, config_name))
             
-                Xma, Xgt, XLI, M = test_image(allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, vol_idx)
-                
-                with torch.no_grad():
-                    if opt.use_GPU:
-                        torch.cuda.synchronize()
-                    start_time = time.time()
-                    X0, ListX, ListA = model(Xma, XLI, M)
-                    end_time = time.time()
-                    dur_time = end_time - start_time
-                    time_test += dur_time
+            print('Testing network ...')
+   
+            for img_idx in range(len(allXma) - 1):
+                print(10*'=', 'Image ', img_idx,  10*'=')
 
-                Xoutclip = torch.clip(ListX[-1] / 255.0, 0, 1)
-                # Xoutnorm = Xoutclip / 0.5
-                # Xouthu = tohu(Xoutclip)
+                for mask_idx in range(len(allXma[img_idx])):
+                    print(4*' ', 5*'=', 'Mask  ', mask_idx, 5*'=')
 
-                Xpred_out = Xoutclip.data.cpu().numpy().squeeze()
-                Xgt_out = Xgt.data.cpu().numpy().squeeze()
+                    Xma, Xgt, XLI, M = test_image(allXma[img_idx], allXgt[img_idx], allXLI[img_idx], allM[img_idx], allSma[img_idx], allSLI[img_idx], allTr[img_idx], mask_idx)
+                    
+                    with torch.no_grad():
+                        if opt.use_GPU:
+                            torch.cuda.synchronize()
+                        start_time = time.time()
+                        X0, ListX, ListA = model(Xma, XLI, M)
+                        end_time = time.time()
+                        dur_time = end_time - start_time
+                        time_test += dur_time
 
-                [row, col] = np.where(Xgt_out > mask_thre)
-                Xgt_out[row, col] = 1
-                Xpred_out[row, col] = 1
-                
-                # image = Image.fromarray(Xpred_out)
-                # image.save(pred_path + 'pred_' + str(vol_idx) + '.tif')
-                # print('image pred_' + str(vol_idx) + '.tif saved')
-                
-                # image_gt = Image.fromarray(Xgt_out)
-                # image_gt.save(gt_path + 'gt_' + str(vol_idx) + '.tif')   
-                # print('image gt_' + str(vol_idx) + '.tif saved\n')
-                
-                save_as_image(Xpred_out, vol_idx, vol_idx, opt.save_path, CTpara, 'Xpred')
-                save_as_image(Xgt_out, vol_idx, vol_idx, opt.save_path, CTpara, 'Xgt')
+                    Xoutclip = torch.clip(ListX[-1] / 255.0, 0, 1)
+                    # Xoutnorm = Xoutclip / 0.5
+                    # Xouthu = tohu(Xoutclip)
 
-                print('PNSR\t metric: {:.4f}'.format(psnr(Xpred_out, Xgt_out)))
-                print('SSIM\t metric: {:.4f}'.format(ssim(Xpred_out, Xgt_out)))
-                print('L2_diff/L2_gt  : {:.4f}'.format(nrmse(Xgt_out, Xpred_out, normalization='mean') /  nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean')))
+                    Xpred_out = Xoutclip.data.cpu().numpy().squeeze()
+                    Xgt_out = Xgt.data.cpu().numpy().squeeze()
 
-                # print('Times: {:.4f}'.format(dur_time))
-                # count += 1
-                print(100*'*')
+                    [row, col] = np.where(Xgt_out > mask_thre)
+                    Xgt_out[row, col] = 1
+                    Xpred_out[row, col] = 1
+                    
+                    save_as_image(Xpred_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xpred')
+                    save_as_image(Xgt_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xgt')
 
-            print('==== END OF CONFIG ====\n')
+                    print('PNSR   metric: {:.4f}'.format(psnr(Xpred_out, Xgt_out)))
+                    print('SSIM   metric: {:.4f}'.format(ssim(Xpred_out, Xgt_out)))
+                    print('L2_diff/L2_gt: {:.4f}'.format(nrmse(Xgt_out, Xpred_out, normalization='mean') /  nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean')))
+                    print('')
+
+                    # print('Times: {:.4f}'.format(dur_time))
+                    # count += 1
+                    # print(30*'*')
 
 if __name__ == "__main__":
     main()
