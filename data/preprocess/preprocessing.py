@@ -3,9 +3,9 @@ import numpy as np
 import os
 import shutil
 from scipy.interpolate import interp1d, RegularGridInterpolator
-from utils import get_config
-from build_geometry import initialization, imaging_geo
-from generate_config import mkdir
+from .utils import get_config
+from .build_geometry import initialization, imaging_geo
+from .generate_config import mkdir
 import PIL
 from PIL import Image
 
@@ -186,3 +186,4 @@ if __name__ == '__main__':
         cur_conf = config_path + config_dir
         for config_name in os.listdir(cur_conf):
             clinic_input_data(test_path, res_path, mask_path, os.path.join(cur_conf, config_name))
+            # clinic_input_data(test_path, res_path, mask_path, 'data/preprocess/config.yaml')

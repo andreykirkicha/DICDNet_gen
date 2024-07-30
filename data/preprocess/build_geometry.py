@@ -5,7 +5,7 @@ class initialization:
     def __init__(self, config):
         self.param = {}
         # self.reso = 512 / 416 * 0.03
-        self.reso = config['detPixNum'] / config['imPixNum'] * config['pixSize']
+        self.reso = config['detPixNum'] / config['imPixNum'] * 0.03
 
         # image
         self.param['nx_h'] = config['imPixNum']
@@ -23,7 +23,8 @@ class initialization:
         self.param['su'] = 2 * np.sqrt(self.param['sx'] ** 2 + self.param['sy'] ** 2)
         self.param['nu_h'] = config['sinogram_size_y']
         self.param['dde'] = config['SOD']
-        self.param['dso'] = config['SDD'] - config['SOD']
+        # self.param['dso'] = config['SDD'] - config['SOD']
+        self.param['dso'] = config['SDD']
         self.param['u_water'] = 0.192 #0.0205
 
 def imaging_geo(param):

@@ -13,11 +13,11 @@ def config_gen(path, dict_file):
         yaml.dump(dict_file, output)
 
 if __name__ == '__main__':
-    K   = np.linspace(1.2, 5, 3)
-    PHI = np.linspace(10, 30, 3)
-    
     detPixNum = 512
     pixSize = 33.3
+
+    K   = np.linspace(1.2, 5, 3)
+    PHI = np.linspace(5, 20, 5)
     
     configs_path = 'data/preprocess/configs/'
 
@@ -27,13 +27,15 @@ if __name__ == '__main__':
 
     for k in K:
         for phi in PHI:
-            SDD = detPixNum * pixSize / phi
-            SOD = SDD / k
+            voxSize = pixSize / k
+            SOD = voxSize * detPixNum / phi
+            SDD = SOD * k
 
             dict_file = {'CTpara' : {'imPixNum' : 416,
                                      'angSize' : 0.05,
                                      'linSize' : 1.8536,
                                      'pixSize' : float(pixSize),
+                                     'voxSize' : float(voxSize),
                                      'detPixNum' : float(detPixNum),
                                      'angNum' : 640,
                                      'SDD' : float(SDD),

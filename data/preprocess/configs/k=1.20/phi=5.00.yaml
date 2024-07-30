@@ -1,0 +1,15 @@
+CTpara:
+  SDD: 3409.9199999999996
+  SOD: 2841.6
+  angNum: 640
+  angSize: 0.05
+  detPixNum: 512.0
+  imPixNum: 416
+  k: 1.2
+  linSize: 1.8536
+  phi: 5.0
+  pixSize: 33.3
+  sinogram_size_x: 640
+  sinogram_size_y: 641
+  voxSize: 27.75
+  window: '[-175, 275] / 1000 * 0.192 + 0.192'
