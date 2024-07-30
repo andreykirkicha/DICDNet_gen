@@ -70,6 +70,15 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
 
         mask_num = 0
 
+        allXma.append([])
+        allXgt.append([])
+        allXLI.append([])
+        allM.append([])
+        allSma.append([])
+        allSLI.append([])
+        allTr.append([])
+        allfilename.append([])
+
         for mask_name in os.listdir(mask_path):
             print(">>> Generation of img ", img_num, " with mask ", mask_num, " ...")
 
@@ -117,15 +126,6 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
             save_as_image(SLI, img_num, mask_num, res_path, CTpara, 'SLI')
             save_as_image(XLI, img_num, mask_num, res_path, CTpara, 'XLI')
 
-            allXma.append([])
-            allXgt.append([])
-            allXLI.append([])
-            allM.append([])
-            allSma.append([])
-            allSLI.append([])
-            allTr.append([])
-            allfilename.append([])
-
             allXma[img_num].append(Xma)
             allXgt[img_num].append(Xgt)
             allXLI[img_num].append(XLI)
@@ -159,8 +159,11 @@ def save_as_image(array, img_num, mask_num, res_path, conf, name):
 
     cur_path = os.path.join(cur_path, f"phi={conf['phi']:.2f}")
     mkdir(cur_path)
+
+    cur_path = os.path.join(cur_path, 'img_' + str(img_num))
+    mkdir(cur_path)
     
-    image.save(os.path.join(cur_path, 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif'))
+    image.save(os.path.join(cur_path, 'mask' + str(mask_num) + '.tif'))
     # print(name + '\t image saved as ' + 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif')
 
 def interpolate_projection(proj, metalTrace):

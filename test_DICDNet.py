@@ -4,24 +4,20 @@ import argparse
 import numpy as np
 import torch
 import time
-import skimage
 import shutil
-from utils import utils_image
 from data.preprocess.preprocessing import clinic_input_data, save_as_image
 from data.preprocess.utils import get_config
 from data.preprocess.generate_config import mkdir
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import normalized_root_mse as nrmse
-import PIL
-from PIL import Image
-import utils.save_image as save_img
 from dicdnet import DICDNet
 
 parser = argparse.ArgumentParser(description="ACDNet_Test")
 parser.add_argument("--model_dir", type=str, default="pretrained_model/DICDNet_latest.pt", help='path to model file')
 parser.add_argument("--data_path", type=str, default="data/test/", help='path to test data')
 parser.add_argument("--mask_path", type=str, default="data/mask/", help='path to masks')
+parser.add_argument("--gen_path", type=str, default="data/generated/", help='path to generated data')
 parser.add_argument("--config_path", type=str, default="data/preprocess/configs/", help='path to configuration files')
 parser.add_argument("--use_GPU", type=bool, default=True, help='use GPU or not')
 parser.add_argument("--gpu_id", type=str, default="0", help='GPU id')
@@ -37,11 +33,6 @@ opt = parser.parse_args()
 
 if opt.use_GPU:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
-
-# def mkdir(path):
-#     folder = os.path.exists(path)
-#     if not folder:
-#         os.makedirs(path)
 
 mask_thre = 2500 / 1000 * 0.192 + 0.192
 
@@ -102,6 +93,9 @@ def main():
     time_test = 0
     count = 0
 
+    for dir in os.listdir(opt.gen_path):
+        shutil.rmtree(os.path.join(opt.gen_path, dir))
+
     for dir in os.listdir(opt.save_path):
         shutil.rmtree(os.path.join(opt.save_path, dir))
 
@@ -113,14 +107,14 @@ def main():
             config = get_config(os.path.join(cur_conf, config_name))
             CTpara = config['CTpara']
 
-            print(50*'*', 'PARAMETERS ', f"k = {CTpara['k']:.2f}, phi = {CTpara['phi']:.2f}", 50*'*')
+            print(50*'*', 'PARAMETERS', f"k = {CTpara['k']:.2f}, phi = {CTpara['phi']:.2f}", 50*'*')
 
             allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, allfilename = clinic_input_data(opt.data_path, 'data/generated', 
                                                                                                  opt.mask_path, os.path.join(cur_conf, config_name))
             
             print('Testing network ...')
    
-            for img_idx in range(len(allXma) - 1):
+            for img_idx in range(len(allXma)):
                 print(10*'=', 'Image ', img_idx,  10*'=')
 
                 for mask_idx in range(len(allXma[img_idx])):
@@ -155,10 +149,6 @@ def main():
                     print('SSIM   metric: {:.4f}'.format(ssim(Xpred_out, Xgt_out)))
                     print('L2_diff/L2_gt: {:.4f}'.format(nrmse(Xgt_out, Xpred_out, normalization='mean') /  nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean')))
                     print('')
-
-                    # print('Times: {:.4f}'.format(dur_time))
-                    # count += 1
-                    # print(30*'*')
 
 if __name__ == "__main__":
     main()
