@@ -18,8 +18,9 @@ if __name__ == '__main__':
     voxSize = 512 / 416 * 0.03
     sx = voxSize * imPixNum
     sy = voxSize * imPixNum
+    k = 2
 
-    K   = np.linspace(1.2, 10, 3)
+    RHO   = np.linspace(50, 10000, 5)
     PHI = np.linspace(0.2, 10, 4)
     
     configs_path = 'data/preprocess/configs/'
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     for dir in dirs:
         shutil.rmtree(os.path.join(configs_path, dir))
 
-    for k in K:
+    for rho in RHO:
         for phi in PHI:
             detSize = 2 * np.sqrt(sx ** 2 + sy ** 2) * k / 2
             pixSize = detSize / detPixNum
@@ -49,9 +50,10 @@ if __name__ == '__main__':
                                      'sinogram_size_y' : 641,
                                      'window' : '[-175, 275] / 1000 * 0.192 + 0.192',
                                      'k' : float(k),
+                                     'rho' : float(rho),
                                      'phi' : float(phi),
                                      'sx' : float(sx),
                                      'sy' : float(sy)}}
-            cur_dir_name = configs_path + 'k=' + f'{k:.2f}'
+            cur_dir_name = configs_path + 'rho=' + f'{rho:.2f}'
             mkdir(cur_dir_name)
             config_gen(cur_dir_name + '/phi=' + f'{phi:.2f}' + '.yaml', dict_file)

@@ -13,7 +13,7 @@ def generation(test_path, res_path, mask_path, config_name):
     config = get_config(config_name)
     CTpara = config['CTpara']                       # CT imaging parameters
 
-    mask_thre = 2500 / 1000 * 0.192 + 0.192         # taking 2500HU as a thresholding to segment the metal region
+    mask_thre = 2500 / 1000 * 0.192 + 0.192 + 0.3         # taking 2500HU as a thresholding to segment the metal region
 
     param = initialization(CTpara)
     ray_trafo, FBPOper = imaging_geo(param)         # CT imaging geometry, ray_trafo is fp, FBPoper is fbp
@@ -82,7 +82,7 @@ def generation(test_path, res_path, mask_path, config_name):
             # polychromatic radiation
             Sgt = np.asarray(ray_trafo(Xgt))
 
-            rho = 1000        # max sinogram value to be about 3-5
+            rho = CTpara['rho']        # max sinogram value to be about 3-5
             total_sum = 0
             for i in range(mat_grid.shape[0]):
                 total_sum += spec[i, 1]
@@ -128,11 +128,12 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
 
     all = [allM, allSLI, allSma, allTr, allXgt, allXLI, allXma]
 
+    # comment if you do not need generation to execute
     generation(test_path, res_path, mask_path, config_name)
 
     dir_idx = 0
     for dir in os.listdir(res_path):
-        path = os.path.join(res_path, dir, f"k={CTpara['k']:.2f}", f"phi={CTpara['phi']:.2f}")
+        path = os.path.join(res_path, dir, f"rho={CTpara['rho']:.2f}", f"phi={CTpara['phi']:.2f}")
 
         img_idx = 0
         for img_dir in os.listdir(path):
@@ -160,7 +161,7 @@ def save_as_image(array, img_num, mask_num, res_path, conf, name):
     cur_path = os.path.join(res_path, name)
     mkdir(cur_path)
 
-    cur_path = os.path.join(cur_path, f"k={conf['k']:.2f}")
+    cur_path = os.path.join(cur_path, f"rho={conf['rho']:.2f}")
     mkdir(cur_path)
 
     cur_path = os.path.join(cur_path, f"phi={conf['phi']:.2f}")
@@ -169,7 +170,7 @@ def save_as_image(array, img_num, mask_num, res_path, conf, name):
     cur_path = os.path.join(cur_path, 'img' + str(img_num))
     mkdir(cur_path)
     
-    image.save(os.path.join(cur_path, f"k{conf['k']:.2f}" + f"_phi{conf['phi']:.2f}" + 
+    image.save(os.path.join(cur_path, f"rho{conf['rho']:.2f}" + f"_phi{conf['phi']:.2f}" + 
                             '_img' + str(img_num) + '_mask' + str(mask_num) + '.tif'))
     # print(name + '\t image saved as ' + 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif')
 

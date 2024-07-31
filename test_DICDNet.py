@@ -6,9 +6,8 @@ import torch
 import time
 import shutil
 import csv
-from data.preprocess.preprocessing import clinic_input_data, save_as_image
+from data.preprocess.preprocessing import clinic_input_data, save_as_image, open_image
 from data.preprocess.utils import get_config
-from data.preprocess.generate_config import mkdir
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import normalized_root_mse as nrmse
@@ -35,7 +34,7 @@ opt = parser.parse_args()
 if opt.use_GPU:
     os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu_id
 
-mask_thre = 2500 / 1000 * 0.192 + 0.192
+mask_thre = 2500 / 1000 * 0.192 + 0.192 + 0.3
 
 def normalized(X):
     maxX = np.max(X)
@@ -94,10 +93,23 @@ def main():
     time_test = 0
     count = 0
 
+    # comment if you do not need generation to execute
     for dir in os.listdir(opt.gen_path):
         shutil.rmtree(os.path.join(opt.gen_path, dir))
 
+    if os.path.exists(os.path.join(opt.save_path, 'metrics.csv')):
+        os.remove(os.path.join(opt.save_path, 'metrics.csv'))
+    
+    if os.path.exists(os.path.join(opt.save_path, 'Xpred')):
+        shutil.rmtree(os.path.join(opt.save_path, 'Xpred'))
+
     print('Load data for DICDNet ...\n')
+
+    with open(os.path.join(opt.save_path, 'metrics.csv'), 'a', newline='') as f:
+        writer = csv.writer(f, delimiter='\t')
+        writer.writerow(['rho  ', 'phi    ', 'PSNR', 'SSIM', 'NRMSE'])
+        f.close()
+
     for config_dir in os.listdir(opt.config_path):
         cur_conf = opt.config_path + config_dir
 
@@ -105,7 +117,7 @@ def main():
             config = get_config(os.path.join(cur_conf, config_name))
             CTpara = config['CTpara']
 
-            print(50*'*', 'PARAMETERS', f"k = {CTpara['k']:.2f}, phi = {CTpara['phi']:.2f}", 50*'*')
+            print(50*'*', 'PARAMETERS', f"rho = {CTpara['rho']:.2f}, phi = {CTpara['phi']:.2f}", 50*'*')
 
             allM, allSLI, allSma, allTr, allXgt, allXLI, allXma = clinic_input_data(opt.data_path, 'data/generated', 
                                                                                     opt.mask_path, os.path.join(cur_conf, config_name))
@@ -142,16 +154,30 @@ def main():
                     
                     save_as_image(Xpred_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xpred')
 
-                    metrics = {'k' : CTpara['k'], 'phi' : CTpara['phi'],
-                               'PNSR' : psnr(Xpred_out, Xgt_out),
-                               'SSIM' : ssim(Xpred_out, Xgt_out),
-                               'NRMSE' : nrmse(Xgt_out, Xpred_out, normalization='mean') /  nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean')
+                    metrics = {'rho': '{:.3f}'.format(CTpara['rho']), 'phi' : '{:.3f}'.format(CTpara['phi']),
+                               'PNSR' : '{:.3f}'.format(psnr(Xpred_out, Xgt_out)),
+                               'SSIM' : '{:.3f}'.format(ssim(Xpred_out, Xgt_out)),
+                               'NRMSE' : '{:.3f}'.format(nrmse(Xgt_out, Xpred_out, normalization='mean') / nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean'))
                                }
 
-                    print('PNSR :\t{:.4f}'.format(metrics['PNSR']))
-                    print('SSIM :\t{:.4f}'.format(metrics['SSIM']))
-                    print('NRMSE:\t{:.4f}'.format(metrics['NRMSE']))
+                    print('PNSR :\t', metrics['PNSR'])
+                    print('SSIM :\t', metrics['SSIM'])
+                    print('NRMSE:\t', metrics['NRMSE'])
                     print('')
+
+                    with open(os.path.join(opt.save_path, 'metrics.csv'), 'a', newline='') as f:
+                        w = csv.DictWriter(f, metrics.keys(), delimiter='\t')
+                        # w.writeheader()
+                        w.writerow(metrics)
+                        f.close()
+
+            # img1 = open_image('data/generated/Sma/k=10.00/phi=10.00/img0/k10.00_phi10.00_img0_mask1.tif', 'float32', 416, 416)
+            # img2 = open_image('data/generated/Sma/k=1.20/phi=10.00/img0/k1.20_phi10.00_img0_mask1.tif', 'float32', 416, 416)
+            # img3 = open_image('data/generated/Xma/k=1.20/phi=10.00/img0/k1.20_phi10.00_img0_mask1.tif', 'float32', 416, 416)
+
+            # new_img = img2 - img1
+            # print(np.min(new_img), np.max(new_img))
+            # save_as_image(new_img, 0, 0, 'results', CTpara, 'dif')
 
 if __name__ == "__main__":
     main()
