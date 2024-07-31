@@ -41,7 +41,7 @@ def imaging_geo(param):
                                           src_radius=param.param['dso'],
                                           det_radius=param.param['dde'])
 
-    ray_trafo_hh = odl.tomo.RayTransform(reco_space_h, geometry_h, impl='astra_cpu')  #https://github.com/astra-toolbox/astra-toolbox
+    ray_trafo_hh = odl.tomo.RayTransform(reco_space_h, geometry_h, impl='astra_cpu')  # https://github.com/astra-toolbox/astra-toolbox
     FBPOper_hh = odl.tomo.fbp_op(ray_trafo_hh, filter_type='Ram-Lak', frequency_scaling=1.0)
 
     return ray_trafo_hh, FBPOper_hh

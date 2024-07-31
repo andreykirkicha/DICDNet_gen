@@ -13,7 +13,7 @@ def generation(test_path, res_path, mask_path, config_name):
     config = get_config(config_name)
     CTpara = config['CTpara']                       # CT imaging parameters
 
-    mask_thre = 2500 / 1000 * 0.192 + 0.192 + 0.3         # taking 2500HU as a thresholding to segment the metal region
+    mask_thre = 2500 / 1000 * 0.192 + 0.192 + 0.3   # taking 2500HU as a thresholding to segment the metal region
 
     param = initialization(CTpara)
     ray_trafo, FBPOper = imaging_geo(param)         # CT imaging geometry, ray_trafo is fp, FBPoper is fbp

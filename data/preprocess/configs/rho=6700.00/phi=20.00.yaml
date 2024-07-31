@@ -1,6 +1,6 @@
 CTpara:
-  SDD: 214.3191407721045
-  SOD: 107.15957038605225
+  SDD: 19.419541874380716
+  SOD: 9.709770937190358
   angNum: 640
   angSize: 0.05
   detPixNum: 640
@@ -8,9 +8,9 @@ CTpara:
   imPixNum: 416
   k: 2.0
   linSize: 1.8536
-  phi: 0.2
+  phi: 20.0
   pixSize: 0.06788225099390857
-  rho: 5025.0
+  rho: 6700.0
   sinogram_size_x: 640
   sinogram_size_y: 641
   sx: 15.360000000000001

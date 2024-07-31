@@ -83,6 +83,9 @@ def test_image(allXma, allXgt, allXLI, allM, allSma, allSLI, allTr, mask_idx):
     
     return torch.Tensor(Xma).cuda(), torch.Tensor(Xgt).cuda(), torch.Tensor(XLI).cuda(), torch.Tensor(non_mask).cuda()
 
+def extract_integer(filename):
+    return int(filename.split('.')[0].split('=')[1])
+
 def main():
     # Build model
     print('Loading model ...')
@@ -105,15 +108,13 @@ def main():
 
     print('Load data for DICDNet ...\n')
 
-    with open(os.path.join(opt.save_path, 'metrics.csv'), 'a', newline='') as f:
-        writer = csv.writer(f, delimiter='\t')
-        writer.writerow(['rho  ', 'phi    ', 'PSNR', 'SSIM', 'NRMSE'])
-        f.close()
+    with open(os.path.join(opt.save_path, 'metrics.txt'), 'w') as f:   
+        print("{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12}".format('rho', 'phi', 'image', 'mask', 'PSNR', 'SSIM', 'NRMSE'), file=f)
 
-    for config_dir in os.listdir(opt.config_path):
+    for config_dir in sorted(os.listdir(opt.config_path), key=extract_integer):
         cur_conf = opt.config_path + config_dir
 
-        for config_name in os.listdir(cur_conf):
+        for config_name in sorted(os.listdir(cur_conf), key=extract_integer):
             config = get_config(os.path.join(cur_conf, config_name))
             CTpara = config['CTpara']
 
@@ -155,29 +156,25 @@ def main():
                     save_as_image(Xpred_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xpred')
 
                     metrics = {'rho': '{:.3f}'.format(CTpara['rho']), 'phi' : '{:.3f}'.format(CTpara['phi']),
-                               'PNSR' : '{:.3f}'.format(psnr(Xpred_out, Xgt_out)),
+                               'image' : str(img_idx), 'mask' : str(mask_idx),
+                               'PSNR' : '{:.3f}'.format(psnr(Xpred_out, Xgt_out)),
                                'SSIM' : '{:.3f}'.format(ssim(Xpred_out, Xgt_out)),
                                'NRMSE' : '{:.3f}'.format(nrmse(Xgt_out, Xpred_out, normalization='mean') / nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean'))
                                }
 
-                    print('PNSR :\t', metrics['PNSR'])
+                    print('PSNR :\t', metrics['PSNR'])
                     print('SSIM :\t', metrics['SSIM'])
                     print('NRMSE:\t', metrics['NRMSE'])
                     print('')
 
-                    with open(os.path.join(opt.save_path, 'metrics.csv'), 'a', newline='') as f:
-                        w = csv.DictWriter(f, metrics.keys(), delimiter='\t')
-                        # w.writeheader()
-                        w.writerow(metrics)
-                        f.close()
-
-            # img1 = open_image('data/generated/Sma/k=10.00/phi=10.00/img0/k10.00_phi10.00_img0_mask1.tif', 'float32', 416, 416)
-            # img2 = open_image('data/generated/Sma/k=1.20/phi=10.00/img0/k1.20_phi10.00_img0_mask1.tif', 'float32', 416, 416)
-            # img3 = open_image('data/generated/Xma/k=1.20/phi=10.00/img0/k1.20_phi10.00_img0_mask1.tif', 'float32', 416, 416)
-
-            # new_img = img2 - img1
-            # print(np.min(new_img), np.max(new_img))
-            # save_as_image(new_img, 0, 0, 'results', CTpara, 'dif')
+                    with open(os.path.join(opt.save_path, 'metrics.txt'), 'a') as f:    
+                        print("{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12}".format(metrics['rho'], 
+                                                                                        metrics['phi'],
+                                                                                        metrics['image'],
+                                                                                        metrics['mask'],
+                                                                                        metrics['PSNR'],
+                                                                                        metrics['SSIM'],
+                                                                                        metrics['NRMSE']), file=f)
 
 if __name__ == "__main__":
     main()
