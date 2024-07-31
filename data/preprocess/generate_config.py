@@ -13,11 +13,14 @@ def config_gen(path, dict_file):
         yaml.dump(dict_file, output)
 
 if __name__ == '__main__':
-    detPixNum = 512
-    pixSize = 33.3
+    detPixNum = 640
+    imPixNum = 416
+    voxSize = 512 / 416 * 0.03
+    sx = voxSize * imPixNum
+    sy = voxSize * imPixNum
 
-    K   = np.linspace(1.2, 5, 2)
-    PHI = np.linspace(5, 20, 2)
+    K   = np.linspace(1.2, 10, 3)
+    PHI = np.linspace(0.2, 10, 4)
     
     configs_path = 'data/preprocess/configs/'
 
@@ -27,16 +30,18 @@ if __name__ == '__main__':
 
     for k in K:
         for phi in PHI:
-            voxSize = pixSize / k
-            SOD = voxSize * detPixNum / phi
-            SDD = SOD * k
+            detSize = 2 * np.sqrt(sx ** 2 + sy ** 2) * k / 2
+            pixSize = detSize / detPixNum
+            SDD = detSize / np.tan(phi)
+            SOD = SDD / k
 
-            dict_file = {'CTpara' : {'imPixNum' : 416,
+            dict_file = {'CTpara' : {'imPixNum' : int(imPixNum),
                                      'angSize' : 0.05,
                                      'linSize' : 1.8536,
                                      'pixSize' : float(pixSize),
                                      'voxSize' : float(voxSize),
-                                     'detPixNum' : float(detPixNum),
+                                     'detPixNum' : int(detPixNum),
+                                     'detSize' : float(detSize),
                                      'angNum' : 640,
                                      'SDD' : float(SDD),
                                      'SOD' : float(SOD),
@@ -44,7 +49,9 @@ if __name__ == '__main__':
                                      'sinogram_size_y' : 641,
                                      'window' : '[-175, 275] / 1000 * 0.192 + 0.192',
                                      'k' : float(k),
-                                     'phi' : float(phi)}}
+                                     'phi' : float(phi),
+                                     'sx' : float(sx),
+                                     'sy' : float(sy)}}
             cur_dir_name = configs_path + 'k=' + f'{k:.2f}'
             mkdir(cur_dir_name)
             config_gen(cur_dir_name + '/phi=' + f'{phi:.2f}' + '.yaml', dict_file)

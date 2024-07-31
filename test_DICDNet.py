@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import time
 import shutil
+import csv
 from data.preprocess.preprocessing import clinic_input_data, save_as_image
 from data.preprocess.utils import get_config
 from data.preprocess.generate_config import mkdir
@@ -93,8 +94,8 @@ def main():
     time_test = 0
     count = 0
 
-    # for dir in os.listdir(opt.gen_path):
-    #     shutil.rmtree(os.path.join(opt.gen_path, dir))
+    for dir in os.listdir(opt.gen_path):
+        shutil.rmtree(os.path.join(opt.gen_path, dir))
 
     print('Load data for DICDNet ...\n')
     for config_dir in os.listdir(opt.config_path):
@@ -109,13 +110,13 @@ def main():
             allM, allSLI, allSma, allTr, allXgt, allXLI, allXma = clinic_input_data(opt.data_path, 'data/generated', 
                                                                                     opt.mask_path, os.path.join(cur_conf, config_name))
             
-            print('Testing network ...')
+            print('\nTesting network ...')
 
             for img_idx in range(len(allXma)):
-                print(10*'=', 'Image ', img_idx,  10*'=')
+                print(10*'=', 'IMAGE ', img_idx,  10*'=')
 
                 for mask_idx in range(len(allXma[img_idx])):
-                    print(4*' ', 5*'=', 'Mask  ', mask_idx, 5*'=')
+                    print(6*' ', 3*'=', 'Mask  ', mask_idx, 3*'=')
 
                     Xma, Xgt, XLI, M = test_image(allXma[img_idx], allXgt[img_idx], allXLI[img_idx], allM[img_idx], allSma[img_idx], allSLI[img_idx], allTr[img_idx], mask_idx)
                     
@@ -141,9 +142,15 @@ def main():
                     
                     save_as_image(Xpred_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xpred')
 
-                    print('PNSR   metric: {:.4f}'.format(psnr(Xpred_out, Xgt_out)))
-                    print('SSIM   metric: {:.4f}'.format(ssim(Xpred_out, Xgt_out)))
-                    print('L2_diff/L2_gt: {:.4f}'.format(nrmse(Xgt_out, Xpred_out, normalization='mean') /  nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean')))
+                    metrics = {'k' : CTpara['k'], 'phi' : CTpara['phi'],
+                               'PNSR' : psnr(Xpred_out, Xgt_out),
+                               'SSIM' : ssim(Xpred_out, Xgt_out),
+                               'NRMSE' : nrmse(Xgt_out, Xpred_out, normalization='mean') /  nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean')
+                               }
+
+                    print('PNSR :\t{:.4f}'.format(metrics['PNSR']))
+                    print('SSIM :\t{:.4f}'.format(metrics['SSIM']))
+                    print('NRMSE:\t{:.4f}'.format(metrics['NRMSE']))
                     print('')
 
 if __name__ == "__main__":

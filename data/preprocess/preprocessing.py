@@ -82,7 +82,7 @@ def generation(test_path, res_path, mask_path, config_name):
             # polychromatic radiation
             Sgt = np.asarray(ray_trafo(Xgt))
 
-            rho = 100        # max sinogram value to be about 3-5
+            rho = 1000        # max sinogram value to be about 3-5
             total_sum = 0
             for i in range(mat_grid.shape[0]):
                 total_sum += spec[i, 1]
@@ -117,7 +117,6 @@ def generation(test_path, res_path, mask_path, config_name):
 def clinic_input_data(test_path, res_path, mask_path, config_name):
     config = get_config(config_name)
     CTpara = config['CTpara']
-    gt_path = 'results/'
 
     allXma = []
     allXgt = []
@@ -129,7 +128,7 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
 
     all = [allM, allSLI, allSma, allTr, allXgt, allXLI, allXma]
 
-    # generation(test_path, res_path, mask_path, config_name)
+    generation(test_path, res_path, mask_path, config_name)
 
     dir_idx = 0
     for dir in os.listdir(res_path):
@@ -167,10 +166,11 @@ def save_as_image(array, img_num, mask_num, res_path, conf, name):
     cur_path = os.path.join(cur_path, f"phi={conf['phi']:.2f}")
     mkdir(cur_path)
 
-    cur_path = os.path.join(cur_path, 'img_' + str(img_num))
+    cur_path = os.path.join(cur_path, 'img' + str(img_num))
     mkdir(cur_path)
     
-    image.save(os.path.join(cur_path, 'mask' + str(mask_num) + '.tif'))
+    image.save(os.path.join(cur_path, f"k{conf['k']:.2f}" + f"_phi{conf['phi']:.2f}" + 
+                            '_img' + str(img_num) + '_mask' + str(mask_num) + '.tif'))
     # print(name + '\t image saved as ' + 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif')
 
 def interpolate_projection(proj, metalTrace):

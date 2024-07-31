@@ -4,14 +4,13 @@ import numpy as np
 class initialization:
     def __init__(self, config):
         self.param = {}
-        # self.reso = 512 / 416 * 0.03
-        self.reso = config['detPixNum'] / config['imPixNum'] * 0.03
+        self.reso = config['voxSize']            # constant voxel size
 
         # image
         self.param['nx_h'] = config['imPixNum']
         self.param['ny_h'] = config['imPixNum']
-        self.param['sx'] = self.param['nx_h'] * self.reso
-        self.param['sy'] = self.param['ny_h'] * self.reso
+        self.param['sx'] = config['sx']
+        self.param['sy'] = config['sy']
 
         ## view
         self.param['startangle'] = 0
@@ -20,11 +19,10 @@ class initialization:
         self.param['nProj'] = 640
 
         ## detector
-        self.param['su'] = 2 * np.sqrt(self.param['sx'] ** 2 + self.param['sy'] ** 2)
+        self.param['su'] = config['detSize']
         self.param['nu_h'] = config['sinogram_size_y']
-        self.param['dde'] = config['SOD']
-        # self.param['dso'] = config['SDD'] - config['SOD']
-        self.param['dso'] = config['SDD']
+        self.param['dde'] = config['SDD'] - config['SOD']
+        self.param['dso'] = config['SOD']
         self.param['u_water'] = 0.192 #0.0205
 
 def imaging_geo(param):
