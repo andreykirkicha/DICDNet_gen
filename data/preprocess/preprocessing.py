@@ -170,7 +170,7 @@ def save_as_image(array, img_num, mask_num, res_path, conf, name):
     cur_path = os.path.join(cur_path, 'img' + str(img_num))
     mkdir(cur_path)
     
-    image.save(os.path.join(cur_path, f"rho{conf['rho']:.2f}" + f"_phi{conf['phi']:.2f}" + 
+    image.save(os.path.join(cur_path, name + f"_rho{conf['rho']:.2f}" + f"_phi{conf['phi']:.2f}" + 
                             '_img' + str(img_num) + '_mask' + str(mask_num) + '.tif'))
     # print(name + '\t image saved as ' + 'img' + str(img_num) + '_mask' + str(mask_num) + '.tif')
 
