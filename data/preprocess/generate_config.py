@@ -20,8 +20,8 @@ if __name__ == '__main__':
     sy = voxSize * imPixNum
     k = 2
 
-    RHO = np.linspace(100, 10000, 4)
-    PHI = np.linspace(0.2, 20, 4)
+    RHO = np.linspace(70, 9000, 20)
+    PHI = np.linspace(0.2, 50, 8)
     
     configs_path = 'data/preprocess/configs/'
 
@@ -33,7 +33,8 @@ if __name__ == '__main__':
         for phi in PHI:
             detSize = 2 * np.sqrt(sx ** 2 + sy ** 2) * k / 2
             pixSize = detSize / detPixNum
-            SDD = detSize / np.tan(phi)
+            phi_rad = phi * np.pi / 180
+            SDD = detSize / np.abs(np.tan(phi_rad))
             SOD = SDD / k
 
             dict_file = {'CTpara' : {'imPixNum' : int(imPixNum),

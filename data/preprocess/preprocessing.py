@@ -112,6 +112,8 @@ def generation(test_path, res_path, mask_path, config_name):
         
         img_num += 1
 
+def extract_mask_num(filename):
+    return int(filename.split('_')[-1].split('.')[0].split('mask')[-1])
 
 # save all the to-the-tested volumes
 def clinic_input_data(test_path, res_path, mask_path, config_name):
@@ -140,7 +142,7 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
             cur_img = os.path.join(path, img_dir)
             all[dir_idx].append([])
 
-            for mask in os.listdir(cur_img):
+            for mask in sorted(os.listdir(cur_img), key=extract_mask_num):
                 array = open_image(os.path.join(cur_img, mask), 'float32', CTpara['imPixNum'], CTpara['imPixNum'])
                 (all[dir_idx])[img_idx].append(array)
 

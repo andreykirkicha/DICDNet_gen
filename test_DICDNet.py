@@ -94,7 +94,8 @@ def main():
     model.eval()
 
     time_test = 0
-    count = 0
+
+    print('Removing folders ...')
 
     # comment if you do not need generation to execute
     for dir in os.listdir(opt.gen_path):
@@ -129,7 +130,7 @@ def main():
                 print(10*'=', 'IMAGE ', img_idx,  10*'=')
 
                 for mask_idx in range(len(allXma[img_idx])):
-                    print(6*' ', 3*'=', 'Mask  ', mask_idx, 3*'=')
+                    print('>>> Image', img_idx, ' Mask', mask_idx)
 
                     Xma, Xgt, XLI, M = test_image(allXma[img_idx], allXgt[img_idx], allXLI[img_idx], allM[img_idx], allSma[img_idx], allSLI[img_idx], allTr[img_idx], mask_idx)
                     
