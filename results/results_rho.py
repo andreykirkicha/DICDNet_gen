@@ -2,18 +2,22 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from data.preprocess.generate_config import mkdir
 
 data = pd.read_csv("results/metrics.txt", sep="\s+")            # reading from file
 
 idxs = data[data['phi'] == 20.0].index
-data = data.drop(index=idxs)                            # dropping failed values
+data = data.drop(index=idxs)                                    # dropping failed values
 
-RHO = data['rho'].unique()                           # getting 'rho' values
+RHO = data['rho'].unique()                                      # getting 'rho' values
 METRICS = ['PSNR', 'SSIM', 'NRMSE']
-MASKS = [0, 1]
-phi = 10.0       
+MASKS = data['mask'].unique()
+PHI = data['phi'].unique()
 
+phi = PHI[0]
 phi_frame = data[data['phi'] == phi]
+
+mkdir('results/metric_rho')
 
 for mask in MASKS:
     mask_frame = phi_frame[phi_frame['mask'] == mask]
@@ -35,5 +39,7 @@ for mask in MASKS:
         plt.ylabel(metric)
         plt.title("mask " + str(mask) + " " + metric + " vs rho")
         plt.legend(labels=[f"phi = {phi}"])
-        plt.savefig('results/mask_' + str(mask) + '_' + metric + '_rho.png', dpi=100)
+        cur_path = 'results/metric_rho/mask' + str(mask)
+        mkdir(cur_path)
+        plt.savefig(cur_path + 'mask' + str(mask) + '_' + metric + '_rho.png', dpi=100)
         plt.clf()

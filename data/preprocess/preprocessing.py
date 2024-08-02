@@ -13,7 +13,7 @@ def generation(test_path, res_path, mask_path, config_name):
     config = get_config(config_name)
     CTpara = config['CTpara']                       # CT imaging parameters
 
-    mask_thre = 2500 / 1000 * 0.192 + 0.192 + 0.3   # taking 2500HU as a thresholding to segment the metal region
+    mask_thre = 2500 / 1000 * 0.192 + 0.192         # taking 2500HU as a thresholding to segment the metal region                       
 
     param = initialization(CTpara)
     ray_trafo, FBPOper = imaging_geo(param)         # CT imaging geometry, ray_trafo is fp, FBPoper is fbp
@@ -72,11 +72,12 @@ def generation(test_path, res_path, mask_path, config_name):
             Xgt[x, y] = mask[x, y]                                      
             
             # segment metal region
-            [rowindex, colindex] = np.where(Xgt > mask_thre)
-            M.fill(0.0)
-            M[rowindex, colindex] = Xgt[rowindex, colindex]              
+            # [rowindex, colindex] = np.where(Xgt > mask_thre)
+            # M.fill(0.0)
+            # M[rowindex, colindex] = Xgt[rowindex, colindex]
+            # M.copy(mask)
             
-            Pmetal_kev = np.asarray(ray_trafo(M))         
+            Pmetal_kev = np.asarray(ray_trafo(mask))         
             Tr = Pmetal_kev > 0
             
             # polychromatic radiation
@@ -86,14 +87,14 @@ def generation(test_path, res_path, mask_path, config_name):
             total_sum = 0
             for i in range(mat_grid.shape[0]):
                 total_sum += spec[i, 1]
-                lin = Tr * mat_grid[i] / rho + Sgt
+                lin = Tr * mat_grid[i] * rho + Sgt
                 Sma += spec[i, 1] * np.exp(-lin)
             Sma = -np.log(Sma / total_sum)
             Xma = np.asarray(FBPOper(Sma))
 
             # to match metal region of gt and ma images
-            [row, col] = np.where(Xma > mask_thre)
-            Xgt[row, col] = Xma[row, col]
+            # [row, col] = np.where(Xma > mask_thre)
+            Xgt[x, y] = Xma[x, y]
             
             # linear interpolation
             SLI = interpolate_projection(Sma, Tr)
@@ -102,7 +103,7 @@ def generation(test_path, res_path, mask_path, config_name):
             # visualization
             save_as_image(Xma, img_num, mask_num, res_path, CTpara, 'Xma')
             save_as_image(Xgt, img_num, mask_num, res_path, CTpara, 'Xgt')
-            save_as_image(M, img_num, mask_num, res_path, CTpara, 'M')
+            save_as_image(mask, img_num, mask_num, res_path, CTpara, 'M')
             save_as_image(Tr, img_num, mask_num, res_path, CTpara, 'Tr')
             save_as_image(Sma, img_num, mask_num, res_path, CTpara, 'Sma')
             save_as_image(SLI, img_num, mask_num, res_path, CTpara, 'SLI')

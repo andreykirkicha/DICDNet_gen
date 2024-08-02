@@ -20,7 +20,7 @@ if __name__ == '__main__':
     sy = voxSize * imPixNum
     k = 2
 
-    RHO = np.linspace(70, 9000, 20)
+    RHO = np.linspace(0.01, 3, 12)
     PHI = np.linspace(0.2, 50, 8)
     
     configs_path = 'data/preprocess/configs/'
