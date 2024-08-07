@@ -116,6 +116,9 @@ def generation(test_path, res_path, mask_path, config_name):
 def extract_mask_num(filename):
     return int(filename.split('_')[-1].split('.')[0].split('mask')[-1])
 
+def extract_img_num(filename):
+    return int(filename[3:])
+
 # save all the to-the-tested volumes
 def clinic_input_data(test_path, res_path, mask_path, config_name):
     config = get_config(config_name)
@@ -131,15 +134,15 @@ def clinic_input_data(test_path, res_path, mask_path, config_name):
 
     all = [allM, allSLI, allSma, allTr, allXgt, allXLI, allXma]
 
-    # comment if you do not need generation to execute
-    generation(test_path, res_path, mask_path, config_name)
+    # comment if you already have generated data
+    # generation(test_path, res_path, mask_path, config_name)
 
     dir_idx = 0
     for dir in os.listdir(res_path):
         path = os.path.join(res_path, dir, f"rho={CTpara['rho']:.2f}", f"phi={CTpara['phi']:.2f}")
 
         img_idx = 0
-        for img_dir in os.listdir(path):
+        for img_dir in sorted(os.listdir(path), key=extract_img_num):
             cur_img = os.path.join(path, img_dir)
             all[dir_idx].append([])
 
