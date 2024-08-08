@@ -107,6 +107,9 @@ def main():
     if os.path.exists(os.path.join(opt.save_path, 'Xgt')):
         shutil.rmtree(os.path.join(opt.save_path, 'Xgt'))
 
+    if os.path.exists(os.path.join(opt.save_path, 'Xma')):
+        shutil.rmtree(os.path.join(opt.save_path, 'Xma'))
+
     if os.path.exists(os.path.join(opt.save_path, 'M')):
         shutil.rmtree(os.path.join(opt.save_path, 'M'))
 
@@ -124,10 +127,13 @@ def main():
     with open(os.path.join(opt.save_path, 'LI_metrics.txt'), 'w') as f:   
         print("{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12}".format('rho', 'phi', 'image', 'mask', 'PSNR', 'SSIM', 'NRMSE'), file=f)
 
-    for config_dir in sorted(os.listdir(opt.config_path), key=extract_integer)[:5]:
+    with open(os.path.join(opt.save_path, 'ma_metrics.txt'), 'w') as f:   
+        print("{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12}".format('rho', 'phi', 'image', 'mask', 'PSNR', 'SSIM', 'NRMSE'), file=f)
+
+    for config_dir in sorted(os.listdir(opt.config_path), key=extract_integer):
         cur_conf = opt.config_path + config_dir
 
-        for config_name in sorted(os.listdir(cur_conf), key=extract_integer)[:5]:
+        for config_name in sorted(os.listdir(cur_conf), key=extract_integer):
             config = get_config(os.path.join(cur_conf, config_name))
             CTpara = config['CTpara']
 
@@ -158,19 +164,25 @@ def main():
                     Xoutclip = torch.clip(ListX[-1] / 255.0, 0, 1)
                     # Xoutnorm = Xoutclip / 0.5
                     # Xouthu = tohu(Xoutclip)
-
                     Xpred_out = Xoutclip.data.cpu().numpy().squeeze()
-
+                    
                     XLI_out = open_image(opt.gen_path + 'XLI/rho=' + '{:.2f}'.format(CTpara['rho']) + '/phi=' + '{:.2f}'.format(CTpara['phi']) + '/img' + str(img_idx) + 
                                          '/XLI_rho' + '{:.2f}'.format(CTpara['rho']) + '_phi' + '{:.2f}'.format(CTpara['phi']) + '_img' + str(img_idx) + '_mask' + 
                                          str(mask_idx) + '.tif', 'float32', 416, 416)
+                    XLI_out = XLI_out.clip(min=0, max=1)
+
                     gt = open_image(opt.gen_path + 'Xgt/rho=' + '{:.2f}'.format(CTpara['rho']) + '/phi=' + '{:.2f}'.format(CTpara['phi']) + '/img' + str(img_idx) + 
                                          '/Xgt_rho' + '{:.2f}'.format(CTpara['rho']) + '_phi' + '{:.2f}'.format(CTpara['phi']) + '_img' + str(img_idx) + '_mask' + 
                                          str(mask_idx) + '.tif', 'float32', 416, 416)
-                    gt = gt.clip(max=1)
+                    gt = gt.clip(min=0, max=1)
+
+                    Xma_out = open_image(opt.gen_path + 'Xma/rho=' + '{:.2f}'.format(CTpara['rho']) + '/phi=' + '{:.2f}'.format(CTpara['phi']) + '/img' + str(img_idx) + 
+                                         '/Xma_rho' + '{:.2f}'.format(CTpara['rho']) + '_phi' + '{:.2f}'.format(CTpara['phi']) + '_img' + str(img_idx) + '_mask' + 
+                                         str(mask_idx) + '.tif', 'float32', 416, 416)
+                    Xma_out = Xma_out.clip(min=0, max=1)
                     
                     Xgt_out = Xgt.data.cpu().numpy().squeeze()
-                    Xgt_out = Xgt_out.clip(max=1)
+                    Xgt_out = Xgt_out.clip(min=0, max=1)
 
                     M_out = M.data.cpu().numpy().squeeze()
 
@@ -179,16 +191,17 @@ def main():
                     Xpred_out[row, col] = gt[row, col]
                     XLI_out[row, col] = gt[row, col]
 
-                    new_img = np.zeros((416, 416))
-                    new_img[row, col] = np.abs(Xgt_out[row, col] - XLI_out[row, col])
-                    print(np.min(new_img), np.max(new_img))
-                    if np.min(new_img) != np.max(new_img):
-                        print(300*'*')
+                    # new_img = np.zeros((416, 416))
+                    # new_img[row, col] = np.abs(Xgt_out[row, col] - XLI_out[row, col])
+                    # print(np.min(new_img), np.max(new_img))
+                    # if np.min(new_img) != np.max(new_img):
+                    #     print(300*'*')
                     
                     save_as_image(M_out, img_idx, mask_idx, opt.save_path, CTpara, 'M')
                     save_as_image(Xpred_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xpred')
                     save_as_image(Xgt_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xgt')
                     save_as_image(XLI_out, img_idx, mask_idx, opt.save_path, CTpara, 'XLI')
+                    save_as_image(Xma_out, img_idx, mask_idx, opt.save_path, CTpara, 'Xma')
 
                     metrics = {'rho': '{:.3f}'.format(CTpara['rho']), 'phi' : '{:.3f}'.format(CTpara['phi']),
                                'image' : str(img_idx), 'mask' : str(mask_idx),
@@ -203,6 +216,13 @@ def main():
                                'SSIM' : '{:.3f}'.format(ssim(XLI_out, Xgt_out)),
                                'NRMSE' : '{:.3f}'.format(nrmse(Xgt_out, XLI_out, normalization='mean') / nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean'))
                                }
+                    
+                    metrics_ma = {'rho': '{:.3f}'.format(CTpara['rho']), 'phi' : '{:.3f}'.format(CTpara['phi']),
+                               'image' : str(img_idx), 'mask' : str(mask_idx),
+                               'PSNR' : '{:.3f}'.format(psnr(Xma_out, Xgt_out)),
+                               'SSIM' : '{:.3f}'.format(ssim(Xma_out, Xgt_out)),
+                               'NRMSE' : '{:.3f}'.format(nrmse(Xgt_out, Xma_out, normalization='mean') / nrmse(Xgt_out, np.zeros_like(Xgt_out), normalization='mean'))
+                               }
 
                     print('PSNR :\t', metrics['PSNR'])
                     print('SSIM :\t', metrics['SSIM'])
@@ -212,6 +232,11 @@ def main():
                     print('(LI) PSNR :\t', metrics_LI['PSNR'])
                     print('(LI) SSIM :\t', metrics_LI['SSIM'])
                     print('(LI) NRMSE:\t', metrics_LI['NRMSE'])
+                    print('')
+
+                    print('(ma) PSNR :\t', metrics_ma['PSNR'])
+                    print('(ma) SSIM :\t', metrics_ma['SSIM'])
+                    print('(ma) NRMSE:\t', metrics_ma['NRMSE'])
                     print('')
 
                     with open(os.path.join(opt.save_path, 'metrics.txt'), 'a') as f:    
@@ -231,6 +256,15 @@ def main():
                                                                                         metrics_LI['PSNR'],
                                                                                         metrics_LI['SSIM'],
                                                                                         metrics_LI['NRMSE']), file=f)
+                        
+                    with open(os.path.join(opt.save_path, 'ma_metrics.txt'), 'a') as f:    
+                        print("{:<12} {:<12} {:<12} {:<12} {:<12} {:<12} {:<12}".format(metrics_ma['rho'], 
+                                                                                        metrics_ma['phi'],
+                                                                                        metrics_ma['image'],
+                                                                                        metrics_ma['mask'],
+                                                                                        metrics_ma['PSNR'],
+                                                                                        metrics_ma['SSIM'],
+                                                                                        metrics_ma['NRMSE']), file=f)
 
 if __name__ == "__main__":
     main()

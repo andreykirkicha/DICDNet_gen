@@ -4,15 +4,15 @@ import seaborn as sns
 import numpy as np
 from results_rho import mkdir
 
-data = pd.read_csv("E:/DICDNet/results/metrics.txt", sep="\s+")
-# data = pd.read_csv("E:/DICDNet/results/LI_metrics.txt", sep="\s+")
+prefix = 'ma_'
+
+data = pd.read_csv("E:/DICDNet/results/" + prefix + "metrics.txt", sep="\s+")
 
 RHO = data['rho'].unique()
 METRICS = ['PSNR', 'SSIM', 'NRMSE']
 MASKS = data['mask'].unique()
 
-mkdir('E:/DICDNet/results/metric_phi')
-# mkdir('E:/DICDNet/results/LI_metric_phi')
+mkdir('E:/DICDNet/results/' + prefix + 'metric_phi')
 
 for mask in MASKS:
     mask_frame = data[data['mask'] == mask]
@@ -56,12 +56,9 @@ for mask in MASKS:
         plt.grid()
         plt.xlabel("phi")
         plt.ylabel(metric)
-        plt.title("mask " + str(mask) + " " + metric + " vs phi for different rho values")
-        # plt.title("mask " + str(mask) + " " + metric + " vs phi for different rho values (LI)")
+        plt.title(prefix + "mask " + str(mask) + " " + metric + " vs phi for different rho values")
         plt.legend(labels=[f"rho = {rho}" for rho in RHO])
-        cur_path = 'E:/DICDNet/results/metric_phi/mask' + str(mask) + '/'
-        # cur_path = 'E:/DICDNet/results/LI_metric_phi/mask' + str(mask) + '/'
+        cur_path = 'E:/DICDNet/results/' + prefix + 'metric_phi/mask' + str(mask) + '/'
         mkdir(cur_path)
-        plt.savefig(cur_path + 'mask' + str(mask) + '_' + metric + '_phi.png', dpi=100)
-        # plt.savefig(cur_path + 'LI_mask' + str(mask) + '_' + metric + '_phi.png', dpi=100)
+        plt.savefig(cur_path + prefix + 'mask' + str(mask) + '_' + metric + '_phi.png', dpi=100)
         plt.clf()
