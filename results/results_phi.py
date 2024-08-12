@@ -4,7 +4,8 @@ import seaborn as sns
 import numpy as np
 from results_rho import mkdir
 
-prefix = 'ma_'
+#  '', 'LI_', 'ma_'
+prefix = ''
 
 data = pd.read_csv("E:/DICDNet/results/" + prefix + "metrics.txt", sep="\s+")
 
@@ -33,25 +34,29 @@ for mask in MASKS:
                 avgs.append(phi_frame[metric].mean())
 
             if rho == RHO[0]:
-                plt.plot(PHI, avgs, marker='o', color='#ff00ff')
+                plt.plot(PHI, avgs, marker='o', color='#44aaff')
             elif rho == RHO[1]:
-                plt.plot(PHI, avgs, marker='v', color='#dd00ff')
+                plt.plot(PHI, avgs, marker='v', color='#4488ff')
             elif rho == RHO[2]:
-                plt.plot(PHI, avgs, marker='s', color='#bb00ff')
+                plt.plot(PHI, avgs, marker='s', color='#4466ff')
             elif rho == RHO[3]:
-                plt.plot(PHI, avgs, marker='d', color='#9900ff') 
+                plt.plot(PHI, avgs, marker='d', color='#5544ff') 
             elif rho == RHO[4]:
-                plt.plot(PHI, avgs, marker='.', color='#7700ff')
+                plt.plot(PHI, avgs, marker='.', color='#6622dd')
             elif rho == RHO[5]:
-                plt.plot(PHI, avgs, marker='1', color='#5500ff')
+                plt.plot(PHI, avgs, marker='1', color='#8800bb')
             elif rho == RHO[6]:
-                plt.plot(PHI, avgs, marker='*', color='#3322dd')
+                plt.plot(PHI, avgs, marker='*', color='#aa0099')
             elif rho == RHO[7]:
-                plt.plot(PHI, avgs, marker='x', color='#1122bb')
+                plt.plot(PHI, avgs, marker='x', color='#cc0077')
             elif rho == RHO[8]:
-                plt.plot(PHI, avgs, marker='|', color='#000099')
+                plt.plot(PHI, avgs, marker='|', color='#ee0055')
+            elif rho == RHO[9]:
+                plt.plot(PHI, avgs, marker='h', color='#cc0033')
+            elif rho == RHO[10]:
+                plt.plot(PHI, avgs, marker='X', color='#aa0011')
             else:
-                plt.plot(PHI, avgs, marker='h', color='#000055')
+                plt.plot(PHI, avgs, marker='P', color='#880000')
 
         plt.grid()
         plt.xlabel("phi")
